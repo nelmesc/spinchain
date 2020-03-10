@@ -106,9 +106,9 @@ do i=1,4
     eigvals_rhob(j)=0._dbl
 enddo
 
-tau_rho=eigvals_rho2(1)
+tau_rho=real(eigvals_rho2(1), dbl)
 do i=2,4
-    tau_rho=tau_rho-eigvals_rho2(i)
+    tau_rho=tau_rho-real(eigvals_rho2(i), dbl)
 enddo
 
 if (tau_rho.le.0) then

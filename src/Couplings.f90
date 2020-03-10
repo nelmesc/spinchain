@@ -20,7 +20,7 @@ integer, intent(in) :: len_branch
 integer, dimension(branches-1), intent(in) :: limits
 
 real(kind=dbl) :: J_0              !characteristic coupling (energy scale) for PST
-integer :: i,j,k
+integer :: i
 
 !Uniform:
 

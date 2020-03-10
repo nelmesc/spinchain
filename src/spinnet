@@ -1,0 +1,233 @@
+#!/bin/bash
+
+#Move state into main folder for initialisation
+mv ./output/final_state.data ./ 2> /dev/null
+
+current_path=$( pwd -P )
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+numproc=$(lscpu | grep "Core(s)" | awk '{print $4}')
+
+# Help function
+function outputHelp {
+
+	echo "---------------------------------------------------"
+	echo "|        Spinnet - Spin Network Simulator         |"
+	echo "---------------------------------------------------"
+	echo "| Developed by Marta Estarellas and Luke Mortimer |"
+	echo "|            University of York, 2019             |"
+	echo "---------------------------------------------------"
+	echo " "
+	echo "Usage:"
+	echo " "
+	echo "  spinnet [flags?] [network string] [flags?]"
+	echo " "
+	echo "Exclusive Flags:"
+	echo " "
+	echo "  -v --visualise         visualise the network instead of simulating"
+	echo "  -o --optimise          optimise the couplings using a GA"
+	echo "  -t --time              just output a time estimate for optimisation"
+	echo "  -c --convert    [int]  convert the string to a certain num of digits"
+	echo " "
+	echo "Optimisation Flags:"
+	echo " "
+	echo "  -e --energy            only change the on-site energies"
+	echo "  -n --negative          allow negative couplings"
+	echo "  -x --exponential       force the fitness to use exponential scaling"
+	echo "  -l --linear            force the fitness to use linear scaling"
+	echo "  -s --speed             focus the optimisation more on speed"
+	echo "  -g --genomes    [int]  specify the number of genomes        (default 1024)  "
+	echo "  -G --generation [int]  specify the number of generations    (default 200)"
+	echo "  -m --mutate     [int]  specify the initial mutation amount  (default 20% of max)"
+	echo "  -M --mutate-end [int]  specify the final mutation amount    (default 1)"
+	echo "  -C --cores      [int]  specify the number of cores to use   (default $numproc)"
+	echo " "
+	echo "Network strings:"
+	echo " "
+	echo "  e.g. <A+iB|CD>AB500BC500CD500#0000"
+	echo " "
+	echo "  This represents a linear chain with uniform couplings going from A->B->C->D."
+	echo "  The values (here all 500) are relative to the maximum value."
+	echo "  Duplicates (AA500) would represent a relative on-site energy."
+	echo " "
+	echo "  The start denotes the  <initial| and |target> states."
+	echo "  A+B is the Bell state of A and B, whilst CD is is both C and D at once."
+	echo "  These can have coefficients such as 3, i, (3+2i) to optimise phases."
+	echo " "
+	echo "  Can also use something like @3.5 at the start to specify a time."
+	echo "  This will make optimisation much faster but much more specific."
+	echo " "
+	echo "  At the end is visual info, specifying the angle of each coupling."
+	echo "  0 represents right, 4 down, 8 left, B up (hex notation clockwise from 0)."
+	echo " "
+	exit 1
+
+}
+
+# Check the arguments
+isGenetic=false
+nextIs=""
+stopAfter=false
+for var in "$@"
+do
+    if [ "$var" = "-o" ] || [ "$var" = "--optimise" ] ;
+	then
+
+		isGenetic=true
+
+	elif [ "$var" = "-c" ] || [ "$var" = "--convert" ] ;
+	then
+
+		stopAfter=true
+
+	elif [ "$var" = "-t" ] || [ "$var" = "--time" ] ;
+	then
+
+		stopAfter=true
+
+	elif [ "$nextIs" = "cores" ] ;
+	then
+
+		numproc=$var
+		nextIs=""
+
+	elif [ "$var" = "-C" ] || [ "$var" = "--cores" ] ;
+	then
+
+		nextIs="cores"
+
+	elif [ "$var" = "-v" ] || [ "$var" = "--visualise" ] ;
+	then
+
+		$parent_path/spinnet-vis "$@"
+		exit 1
+
+	elif [ "$var" = "--help" ] || [ "$var" = "-h" ] ;
+	then
+		outputHelp
+	fi
+done
+
+if [ $# -eq 0 ]; then
+	outputHelp
+fi
+
+rm -rf ./output
+rm -f *.out
+
+export OPENBLAS_NUM_THREADS=1
+
+if [ "$isGenetic" = "true" ] ;
+then
+	mpirun --bind-to core -np $numproc $parent_path/run "$@"
+	python3 $parent_path/genetic.py genetic.out
+	isGenetic=false
+else
+	$parent_path/run "$@"
+fi
+
+if [ "$stopAfter" = "true" ]
+then
+	exit 1
+fi
+
+#Create output directory
+mkdir -p output 
+
+if [ "$isGenetic" = "false" ]
+then
+
+	# Read info from the run
+	source 'info.data'
+
+	if [ $MAX_EOF = 'T' ] && [ $REALISATIONS -eq 1 ] ;
+	then
+		if [ $METHOD = 'DIAG' ] ;
+		then
+			python3 $parent_path/python_scripts/maxEOF.py eof.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
+		fi
+	fi
+
+	# Realisations if noise
+	if [ $REALISATIONS -ne 1 ] ;
+	then
+		for j in `seq 1 1 $REALISATIONS`
+		do
+			echo 'Realisation num:' $j
+
+			# Run executable
+			$parent_path/run
+
+			cat eigenvalues.data >> eigenvalues_realisations.data
+
+			if [ $SINGLE = 'T' ] ;
+			then
+				cat eof.data >> eof_realisations_SP.data
+			elif [ $MAX_EOF = 'T' ] ;
+			then
+				cat eof.data >> eof_realisations_FD.data
+			fi
+		done
+
+		python3 $parent_path/averageEigenvalues.py eigenvalues_realisations.data $VECTORS $REALISATIONS
+
+		if [ $SINGLE = 'T' ] ;
+		then
+			python3 $parent_path/averageEOF.py eof_realisations_SP.data $TA $OFFNOISE $DIAGNOISE
+		elif [ $MAX_EOF = 'T' ] ;
+		then
+			python3 $parent_path/maxEOF.py eof_realisations_FD.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
+		fi
+
+		if [ $GRAPHICAL = 'T' ] ;
+		then
+			#Plot averaged
+			python3 $parent_path/averagedEigenvalues.py $VECTORS
+		fi
+
+		#If plots have been created move them to the required folder
+		mkdir output/plots
+		mv ./*.png ./output/plots
+
+	fi
+
+	#Graphical outputs (not done if single time realisations or integration method)
+	if [ $GRAPHICAL = 'T' ] && [ $SINGLE = 'F' ] ;
+	then
+
+		#echo ' >> Plot'
+
+		if [ $METHOD = 'DIAG' ] ;
+		then
+
+			python3 $parent_path/probabilities.py $VECTORS
+			python3 $parent_path/eigenvalues.py $VECTORS
+
+			if [ $EOF = 'T' ] ;
+			then
+				python3 $parent_path/eof.py $TOTALTIME $INITIALVEC
+			fi
+
+		fi
+
+		python3 $parent_path/dynamics.py $TOTALTIME $INITIALVEC $N
+		python3 $parent_path/exmap.py $TOTALTIME
+
+		#If plots have been created move them to the required folder
+		mkdir output/plots
+		mv ./*.png ./output/plots 2> /dev/null
+
+	fi
+
+fi
+
+# Rename the output directory with the date and time
+mv ./*.out ./output 2> /dev/null
+mkdir ./output/data
+mv ./*.data ./output/data 2> /dev/null
+rm -r ./output-latest
+cp -r output ./output-latest
+mv output ./output-$(date -u +"%F-%H-%M")
+
+
+

@@ -24,10 +24,8 @@ complex(kind=dbl), dimension(vectorstotal), intent(out) :: initial_state
 
 complex(kind=dbl), dimension(vectorstotal) :: c_i
 
-!local variables
-integer :: i,j,k,p
-
 real(kind=dbl) :: norm
+integer :: i
 
 !open files
 open (unit=60,file='final_state.data',status='old')
@@ -44,7 +42,7 @@ close(60)
 
 norm = 0._dbl
 do i=1,vectorstotal
-    norm = norm + dconjg(c_i(i))*(c_i(i))
+    norm = norm + real(dconjg(c_i(i))*(c_i(i)), dbl)
 enddo
 
 do i=1,vectorstotal

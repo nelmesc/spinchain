@@ -10,7 +10,12 @@ real(dubp) :: Noise_SDev=0.5_dubp ! For Normal distribution
 
 end module
 
-program spinchain
+
+module main
+
+contains 
+
+subroutine solve(modeNum, c_vs_t)
 
 !!load subroutines
 use dependencies
@@ -30,8 +35,11 @@ implicit none
 !!can be computed by using the relevant subroutines
 !a change
 
-!NOTES:
+! Optional array which if present returns the coefficients as a function of time
+complex(kind=dbl), dimension(:, :), allocatable, intent(inout), optional :: c_vs_t
 
+! Optional variable which if present tells which mode to use (defaults to 1)
+integer, intent(in) :: modeNum
 
 !***************************************************!
 !******************  VARIABLES *********************!
@@ -42,21 +50,25 @@ integer :: i,j,k,v,w   !loop dummies
 integer :: nit,Ninit,ex      !subroutine Permutations variables
 integer :: seed
 
-integer :: vectors1ex = N       !Initially set to N, reallocate later if needed (E.I.)
-integer :: vectors2ex = N       !Initially set to N, reallocate later if needed (E.I.)
-integer :: vectors3ex = N       !Initially set to N, reallocate later if needed (E.I.)
+integer :: vectors1ex       !Initially set to N, reallocate later if needed (E.I.)
+integer :: vectors2ex       !Initially set to N, reallocate later if needed (E.I.)
+integer :: vectors3ex       !Initially set to N, reallocate later if needed (E.I.)
+integer, dimension(:), allocatable :: vectors_ex
 integer :: vectorstotal         !Sum of all the vectors
 integer :: hub
 integer :: len_branch
 
 integer :: info, liwork  !Info in lapack subroutines
 
-integer,dimension(8) :: values !array with date
-integer, dimension(N) :: vec
+integer, dimension(8) :: values !array with date
+integer, dimension(:), allocatable :: vec
 integer, dimension(branches-1) :: limits
 integer, allocatable, dimension (:) :: iwork
 
-integer, allocatable, dimension(:,:) :: H1,H2,H3,HT !Hilbert subspaces matrices
+integer, allocatable, dimension(:,:) :: HS ! Hilbert subspace matrices
+integer, allocatable, dimension(:,:) :: HT ! Total subspace matrix (containing basis vecs)
+integer, allocatable, dimension(:,:) :: H1,H2,H3
+integer :: vectors_so_far
 
 
 !floats
@@ -64,7 +76,8 @@ real(kind=dbl) :: normal,orto !normaliztion constant
 real(kind=dbl) :: r !random number
 real(kind=dbl) :: initialtime
 
-real(kind=dbl), dimension(N-1) :: Js = 0.0_dbl
+real(kind=dbl), dimension(:),   allocatable :: Js
+real(kind=dbl), dimension(:,:), allocatable :: Js2D
 
 real(kind=dbl), allocatable, dimension(:) :: eigvals
 real(kind=dbl), allocatable, dimension(:) :: rwork
@@ -92,12 +105,11 @@ real(dubp), external :: algor_uniform_random
 logical, parameter, dimension(4) :: topology = (/linear,star,lattice,squared/)
 logical, parameter, dimension(6) :: coupling = (/uniform, pst, ssh_a, ssh_b, abc, kitaev/)
 
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! START PROGRAM AND WRITE OUTPUT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if (output) then
+if (output .and. .not. use_genetic) then
 !retrieve date
 call date_and_time(VALUES=values)
 101 FORMAT (1X,59("*"))
@@ -119,98 +131,114 @@ endif
 !!!! DEFINING THE DESIRED TYPE OF CHAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+if (allocated(vec)) deallocate(vec)
+allocate(vec(N))
+
+! Set up variables with N dependence
+vectors1ex = N
+vectors2ex = N
+vectors3ex = N
+if(allocated(Js)) deallocate(Js)
+if(allocated(Js2D)) deallocate(Js)
+allocate(Js(N-1))
+allocate(Js2D(N,N))
+Js = 0.0_dbl
+Js2D = 0.0_dbl
+
 !**********************************************
 !this is done in the module called PARAMETERS
 !you should ONLY modify that module to set the
 !conditions and structure of the chain.
 !**********************************************
 
-write(*,*) '>> Defining System'
+!if (output .and. .not. use_genetic) write(*,*) '>> Defining System'
 
 !Write initial conditions
-if (output) then
-201 FORMAT (/"NUMBER OF SITES = ",A)
-write(tmp,'(i4.1)') N
-write(40,201) adjustl(trim(tmp))
+if (output .and. .not. use_genetic) then
 
-202 FORMAT ("NUMBER OF EXCITATIONS = ",A)
-write(tmp,'(i4.1)') exno
-write(40,202) adjustl(trim(tmp))
+    201 FORMAT (/"NUMBER OF SITES = ",A)
+    write(tmp,'(i4.1)') N
+    write(40,201) adjustl(trim(tmp))
 
-203 FORMAT ("TOPOLOGY = ",A)
-if (linear) then
-tmp = 'LINEAR'
-else if (star) then
-tmp = 'STAR'
-else if (lattice) then
-tmp = 'LATTICE'
-else if (squared) then
-tmp = 'SQUARED'
-end if
-write(40,203) adjustl(trim(tmp))
+    202 FORMAT ("NUMBER OF EXCITATIONS = ",A)
+    write(tmp,'(i4.1)') exno
+    write(40,202) adjustl(trim(tmp))
 
-204 FORMAT ("COUPLING CONFIGURATION = ",A)
-if (uniform) then
-tmp = 'UNIFORM'
-else if (pst) then
-tmp = 'PST'
-else if (ssh_a) then
-tmp = 'SSH - A'
-else if (ssh_b) then
-tmp = 'SSG - B'
-else if (abc) then
-tmp = 'ABC'
-end if
-write(40,204) adjustl(trim(tmp))
+    203 FORMAT ("TOPOLOGY = ",A)
+    if (custom) then
+        tmp = 'CUSTOM'
+    else if (linear) then
+        tmp = 'LINEAR'
+    else if (star) then
+        tmp = 'STAR'
+    else if (lattice) then
+        tmp = 'LATTICE'
+    else if (squared) then
+        tmp = 'SQUARED'
+    end if
+    write(40,203) adjustl(trim(tmp))
 
-205 FORMAT ("INITIAL INJECTED VECTOR INDEX = ",A)
-do i=1,numI
-call initialState(initialVec)
-write(tmp,'(i3.1)') initialVec(i)
-write(40,205) tmp
-enddo
+    204 FORMAT ("COUPLING CONFIGURATION = ",A)
+    if (custom) then
+        tmp = "CUSTOM"
+    else if (uniform) then
+        tmp = 'UNIFORM'
+    else if (pst) then
+        tmp = 'PST'
+    else if (ssh_a) then
+        tmp = 'SSH - A'
+    else if (ssh_b) then
+        tmp = 'SSG - B'
+    else if (abc) then
+        tmp = 'ABC'
+    end if
+    write(40,204) adjustl(trim(tmp))
 
-206 FORMAT ("DIAGONAL DISORDER = ",A)
-tmp = 'NO'
-if (random_D) then
-write(tmp,'(f8.2)') E_D
-endif
-write(40,206) adjustl(trim(tmp))
+    if (custom) then
+        write(40, "(A,A)") "CUSTOM NETWORK STRING = ", trim(custom_string)
+    end if
 
-207 FORMAT ("OFF-DIAGONAL DISORDER = ",A)
-tmp = 'NO'
-if (random_J) then
-write(tmp,'(f8.2)') E_J
-endif
-write(40,207) adjustl(trim(tmp))
+    206 FORMAT ("DIAGONAL DISORDER = ",A)
+    tmp = 'NO'
+    if (random_D) then
+        write(tmp,'(f8.2)') E_D
+    endif
+    write(40,206) adjustl(trim(tmp))
 
-208 FORMAT ("TOTAL TIME = ",A)
-write(tmp,'(f8.2)') totaltime
-write(40,208) adjustl(trim(tmp))
+    207 FORMAT ("OFF-DIAGONAL DISORDER = ",A)
+    tmp = 'NO'
+    if (random_J) then
+        write(tmp,'(f8.2)') E_J
+    endif
+    write(40,207) adjustl(trim(tmp))
 
-209 FORMAT ("TIME STEP = ",A)
-write(tmp,'(f8.4)') totaltime/real(steps)
-write(40,209) adjustl(trim(tmp))
+    208 FORMAT ("TOTAL TIME = ",A)
+    write(tmp,'(f8.2)') totaltime
+    write(40,208) adjustl(trim(tmp))
+
+    209 FORMAT ("TIME STEP = ",A)
+    write(tmp,'(f8.4)') totaltime/real(steps)
+    write(40,209) adjustl(trim(tmp))
 
 
-if (eof) then
-210 FORMAT ("EOF = Qubit ",A,'- Qubit ',A)
-write(tmp,'(i3.1)') Q1
-write(tmp2,'(i3.1)') Q2
-write(40,210) adjustl(trim(tmp)), adjustl(trim(tmp2))
-else
-211 FORMAT ("EOF = ",A)
-tmp = 'NO'
-write(40,211) adjustl(trim(tmp))
-endif
+    if (eof) then
+        210 FORMAT ("EOF = Qubit ",A,'- Qubit ',A)
+        write(tmp,'(i3.1)') Q1
+        write(tmp2,'(i3.1)') Q2
+        write(40,210) adjustl(trim(tmp)), adjustl(trim(tmp2))
+    else
+        211 FORMAT ("EOF = ",A)
+        tmp = 'NO'
+        write(40,211) adjustl(trim(tmp))
+    endif
 
-212 FORMAT ("METHOD = ",A)
-if (integration) then
-tmp = 'INT'
-else if (diagonalisation) then
-tmp = 'DIAG'
-end if
-write(40,212) adjustl(trim(tmp))
+    212 FORMAT ("METHOD = ",A)
+    if (integration) then
+        tmp = 'INT'
+    else if (diagonalisation) then
+        tmp = 'DIAG'
+    end if
+    write(40,212) adjustl(trim(tmp))
 
 endif
 
@@ -250,7 +278,7 @@ if (linear) then
     endif
 endif
 
-if (star) then
+if (star .and. .not. custom) then
 
     if (branches==0) then
     STOP 'ERROR: For star topology you need to specify how many branches you want.'
@@ -275,105 +303,96 @@ STOP 'ERROR: If you want to calculate the maximum EOF over a full window you'&
 &'cannot do a single point calculation of the dynamics. Set *single* to False.'
 endif
 
-write(*,*) '>> Initial checks'
+!if (output .and. .not. use_genetic) write(*,*) '>> Initial checks'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! DEFINING BASIS VECTORS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!Calculate number of vectors for each excitation N!/exno!(N-exno)! subspace and the total number
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!TODO - GENERALIZE
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-!Calculate number of vectors for each excitation N!/exno!(N-exno)! subspace and the total number
-!this is done progressively, sector by sector for sake of efficiency:
+! Allocate the size array
+allocate(vectors_ex(exno))
 
-if (exno==1) then
-    vectorstotal = vectors1ex+1
-else if (exno==2) then
-    vectors2ex = (N*(N-1)/2)
-    vectorstotal = vectors1ex+vectors2ex+1
-else if (exno==3) then
-    vectors2ex = (N*(N-1)/2)
-    vectors3ex = (N*(N-1)*(N-2)/6)
-    vectorstotal = vectors1ex+vectors2ex+vectors3ex+1
+! Determine the sizes
+vectorstotal = 0
+do i = 1, exno
+    vectors_ex(i) = 1
+    do j = N+1-i, N
+        vectors_ex(i) = vectors_ex(i) * j
+    end do
+    vectors_ex(i) = vectors_ex(i) / factorial(i)
+    vectorstotal = vectorstotal + vectors_ex(i)
+end do
+
+! Allocate matrices that will contain all the vectors
+allocate(HT(vectorstotal,N))
+HT = 0
+
+! Create the subsectors matrices through a recursive call to Permutations
+vectors_so_far = 1
+do i = 1, exno
+
+    ! Allocate the array to hold the permutations
+    allocate(HS(vectors_ex(i),N))
+
+    ! Get the permutations
+    nit=1
+    Ninit=1
+    vec=0
+    k=1
+    ex=i
+    call permutations(ex,nit,vec,N,Ninit,Hs,vectors_ex(i),k)
+
+    ! Update the array of all basis vectors
+    HT(vectors_so_far:vectors_so_far+vectors_ex(i)-1,:) = HS
+    vectors_so_far = vectors_so_far + vectors_ex(i)
+
+    ! Prevent memory leaks
+    deallocate(HS)
+
+end do
+
+! Now we know the vectors, figure out which one AB+C (etc.) corresponds to
+if (custom) then
+    call get_vector_indices(HT)
 end if
 
-!Allocate matrices that will contain all the vectors:
+if (.not. custom) call initialState(initialVec)
+if (.not. use_genetic) then
 
-allocate(H1(N,N))
-allocate(H2(vectors2ex,N))
-allocate(H3(vectors3ex,N))
-allocate(HT(vectorstotal,N))
+    do j=1,numModes
+        write(40,"(A,I0,A)") "FOR MODE ", j, ":"
+        do i=1,numI
+            write(40,'(A,i3.1)') "  INITIAL INJECTED VECTOR INDEX = ", initialVec(j,i)
+            write(40,'(A,f6.2,A,f6.2,A)') "  WITH COEFFICIENT = (", real(initialCoeff(j,i)), ", ", aimag(initialCoeff(j,i)), ")"
+        enddo
+        do i=1,numF
+            write(40,"(A,i3.1)") "  FINAL VECTOR INDEX = ", targetVec(j,i)
+            write(40,'(A,f6.2,A,f6.2,A)') "  WITH COEFFICIENT = (", real(targetCoeff(j,i)), ", ", aimag(targetCoeff(j,i)), ")"
+        enddo
+    end do
 
-H1 = 0  !1ex subspace matrix
-H2 = 0  !2ex subspace matrix
-H3 = 0  !3ex subspace matrix
-!... keep adding matrices
-HT = 0  !total vectors
+end if
 
-!GENERALIZE THIS
-!Create the subsectors matrices through a recursive call to Permutations
-!First subsector (including ground state - all spins down):
-
-do i=1,N
-    do j=1,N
-        if (i.eq.j) then
-            H1(i,j)=1
-        endif
-    enddo
-enddo
-
-HT(2:,:) = H1
-
-!Second subsector (two excitations):
-
-if (exno>1) then
-    nit=1
-    Ninit=1
-    vec=0
-    k=1
-    ex=2
-    call permutations(ex,nit,vec,N,Ninit,H2,vectors2ex,k)
-    HT(vectors1ex+2:,:) = H2
-endif
-
-!Third subsector (three excitations):
-
-if (exno>2) then
-    nit=1
-    Ninit=1
-    vec=0
-    k=1
-    ex=3
-    call permutations(ex,nit,vec,N,Ninit,H3,vectors3ex,k)
-    HT(vectors1ex+vectors2ex+2:,:) = H3
-endif
-
-!**(NOTE: Add extra subsectors in the same fashion if needed)**
-
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-!Stdout vectors martix
-if (output) then
+!Stdout vectors matrix
+if (output .and. .not. use_genetic) then
     200 FORMAT (/A)
     write(40,FMT=200) 'BASIS VECTORS:'
     do i=1,vectorstotal
-        write(40,*) i,'-->',(HT(i,j),j=1,N)
+        write(40,"(I0,A,500I3)") i,' -->',(HT(i,j),j=1,N)
     enddo
 endif
 
-write(*,*) '>> Basis vectors defined'
+!if (output .and. .not. use_genetic) write(*,*) '>> Basis vectors defined'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! INITIAL STATE NORMALIZATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-write(*,*) '>> Defining initial injection'
+!if (output .and. .not. use_genetic) write(*,*) '>> Defining initial injection'
 
-!normalization factor dependenig
+!normalization factor depending
 !on the number of initial injections
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -385,7 +404,7 @@ limits = 0
 hub = 0
 len_branch = 0
 
-if (star) then
+if (star .and. .not. custom) then
 
 len_branch = ((2*(N - 1)/branches)+1)
 hub = ((len_branch-1)/2) + 1
@@ -403,19 +422,39 @@ endif
 !!!! DEFINE COUPLING PATTERN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-call couplings(Js,len_branch,hub,limits)
+if (custom) then
 
-!Stdout coupling pattern
-301 FORMAT ("(spin",I3,")-(spin",I3,") -->",F6.2)
-if (output) then
-    write(40,FMT=200) 'COUPLING PATTERN:'
-    do i=1,N-1
-        write(40,FMT=301) i, i+1, Js(i)
-    enddo
-endif
+    ! Generate the 2D coupling matrix based on the custom string
+    call couplings_custom(Js2D, N, custom_string)
 
-write(*,*) '>> Coupling pattern defined'
+    ! Output the coupling pattern
+    if (output .and. .not. use_genetic) then
+        write(40,"()") 
+        write(40,"(A)") "COUPLING PATTERN:"
+        do i = 1, N
+            do j = 1, N
+                write(40, "(f7.3,A)", advance = "no") Js2D(i,j), " "
+            enddo
+            write(40, "()") 
+        enddo
+    endif
 
+else
+
+    call couplings(Js,len_branch,hub,limits)
+
+    !Stdout coupling pattern
+    301 FORMAT ("(spin",I3,")-(spin",I3,") -->",F6.2)
+    if (output .and. .not. use_genetic) then
+        write(40,FMT=200) 'COUPLING PATTERN:'
+        do i=1,N-1
+            write(40,FMT=301) i, i+1, Js(i)
+        enddo
+    endif
+
+end if
+
+!if (output .and. .not. use_genetic) write(*,*) '>> Coupling pattern defined'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! ADD PERTURBATION FACTORS TO THE COUPLINGS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -438,21 +477,23 @@ endif
 allocate(hami(vectorstotal,vectorstotal))
 
 hami=0.0_dbl
-if (linear) then
+if (custom) then
+    call build_hamiltonian_custom(N,vectorstotal,Js2D,HT,hami,eeScale)
+else if (linear) then
     call build_hamiltonian_linear(HT,Js,N,vectorstotal,hami)
 else if (star) then
     call build_hamiltonian_star(HT,Js,N,vectorstotal,hami,branches,limits,hub,len_branch)
 endif
 
 !Stdout Hamiltonian
-if (output) then
+if (output .and. .not. use_genetic) then
     write(40,FMT=200) 'HAMILTONIAN MATRIX:'
     do i=1,vectorstotal
-        write(40,*) (hami(i,j),j=1,vectorstotal)
+        write(40,"(30(I0,A))") (ceiling(hami(i,j))," ",j=1,vectorstotal)
     enddo
 endif
 
-write(*,*) '>> Hamiltonian Build'
+!if (output .and. .not. use_genetic) write(*,*) '>> Hamiltonian Built'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! ADD PERTURBATION FACTORS TO THE DIAGONAL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -517,7 +558,7 @@ liwork=5*vectorstotal+3
 allocate(iwork(liwork))
 
 !save Hamiltonian matrix
-if (files) then
+if (files .and. .not. use_genetic) then
     open(unit=89,file='hami.data',status='unknown')
     write(89,*) '#HAMILTONIAN'
     do i=1,vectorstotal
@@ -564,7 +605,7 @@ do v=1,vectorstotal
 enddo
 
 !!Stdout Eigenvalues
-if (output) then
+if (output .and. .not. use_genetic) then
 
     !set formats
     write(tmp,'(i3.1)') vectorstotal
@@ -604,7 +645,7 @@ if (output) then
 endif
 
 !!Save data in files
-if (files) then
+if (files .and. .not. use_genetic) then
 
     open (unit=41,file='coefficients.data',status='unknown')
     open (unit=42,file='probabilities.data',status='unknown')
@@ -633,7 +674,11 @@ if (files) then
 
 endif
 
-write(*,*) '>> Hamiltonian Diagonalization'
+
+if (output .and. .not. use_genetic) then
+    !write(*,*) '>> Hamiltonian Diagonalization'
+    flush(40)
+end if
 
 end if
 
@@ -646,8 +691,10 @@ allocate(c_i(vectorstotal))
 c_i=cmplx(0.0_dbl, 0.0_dbl, kind=dbl)
 
 if (integration) then
-    call time_integration(HT,hamiD,vectorstotal,c_i)
-    write(*,*) '>> Dynamics (direct integration method)'
+
+    call time_integration(HT,hamiD,vectorstotal,c_i,modeNum)
+    !if (output .and. .not. use_genetic) write(*,*) '>> Dynamics (direct integration method)'
+
 end if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -656,11 +703,17 @@ end if
 
 if (diagonalisation) then
 
-if (dynamics) then
+    if (dynamics) then
 
-    call injection_dynamics(HT,hamiD,eigvals,vectorstotal,c_i,initialtime)
-    write(*,*) '>> Dynamics'
-end if
+        if (present(c_vs_t)) then        
+            call injection_dynamics(HT,hamiD,eigvals,vectorstotal,c_i,initialtime,modeNum,c_vs_t)
+        else
+            call injection_dynamics(HT,hamiD,eigvals,vectorstotal,c_i,initialtime,modeNum)
+        end if
+
+        !if (output .and. .not. use_genetic) write(*,*) '>> Dynamics'
+
+    end if
 
 end if
 
@@ -692,9 +745,12 @@ end if
 !!!! PLOTTING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-    !Writes in a file data needed for plots
+!Writes in a file data needed for plots
+if (.not. use_genetic) then
     open(unit=46,file='info.data',status='unknown')
+
+
+    write(46, "(A,L)") "GENETIC=", use_genetic
 
     401 FORMAT ("GRAPHICAL=",L)
     write(46,401) graphical
@@ -722,10 +778,12 @@ end if
     write(tmp,'(f8.2)') t_A
     write(46,406) adjustl(trim(tmp))
 
+    do j=1, numModes
     407 FORMAT ("INITIALVEC=",A)
     do i=1,numI
-    write(tmp,'(i5.2)') initialVec(i)
+    write(tmp,'(i5.2)') initialVec(j,i)
     write(46,407) adjustl(trim(tmp))
+    enddo
     enddo
 
     408 FORMAT ("EOF=",L)
@@ -752,12 +810,13 @@ end if
     tmp = 'DIAG'
     end if
     write(46,413) adjustl(trim(tmp))
+end if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! FREE SPACE AND CLOSE FILES AND CLEAN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if (output) then
+if (output .and. .not. use_genetic) then
     close(unit=40)
 endif
 
@@ -766,23 +825,26 @@ if (graphical) then
 endif
 
 !!deallocation **VERY IMPORTANT**
-deallocate(H1)
-deallocate(H2)
-deallocate(H3)
-deallocate(HT)
-deallocate(hami)
-deallocate(Noise)
-deallocate(c_i)
-deallocate(hamiD)
+if (allocated(H1))    deallocate(H1)
+if (allocated(H3))    deallocate(H2)
+if (allocated(H3))    deallocate(H3)
+if (allocated(HT))    deallocate(HT)
+if (allocated(hami))  deallocate(hami)
+if (allocated(Noise)) deallocate(Noise)
+if (allocated(c_i))   deallocate(c_i)
+if (allocated(hamiD)) deallocate(hamiD)
+if (allocated(Js))    deallocate(Js)
+if (allocated(Js2D))  deallocate(Js2D)
+if (allocated(vec))   deallocate(vec)
 
 if (diagonalisation) then
-    deallocate(eigvals)
-    deallocate(rwork)
-    deallocate(work)
-    deallocate(iwork)
+    if (allocated(eigvals)) deallocate(eigvals)
+    if (allocated(rwork))   deallocate(rwork)
+    if (allocated(work))    deallocate(work)
+    if (allocated(iwork))   deallocate(iwork)
 endif
 
-end program
+end subroutine
 
 !*********************TO BE REPROGRAMED**********************!
 
@@ -819,6 +881,18 @@ seed = int(rtime)                                 !return the seed that was used
 
 return
 end subroutine noise_sub1
+
+function factorial(a)
+
+    integer, intent(in) :: a
+    integer :: factorial, i
+
+    factorial = 1
+    do i = 2, a
+        factorial = factorial * i
+    end do
+
+end function
 
 function algor_uniform_random()
 !=========================================================================!
@@ -884,3 +958,5 @@ return
 end function algor_uniform_random
 
 !**********************************************************************************!
+
+end module 

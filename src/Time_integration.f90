@@ -12,7 +12,7 @@
 ! Written by Marta Estarellas, v0.1, 31/03/2017                           !
 !=========================================================================!
 
-subroutine time_integration(HT,hami,vectorstotal,c_i)
+subroutine time_integration(HT,hami,vectorstotal,c_i,modeNum)
 
 !modules
 use constants
@@ -21,6 +21,7 @@ use parameters
 !inputs
 integer, intent(in) :: vectorstotal
 integer, dimension(vectorstotal,vectorstotal), intent(in) :: HT
+integer, intent(in) :: modeNum
 
 complex(kind=dbl), dimension(vectorstotal,vectorstotal), intent(in) :: hami
 complex(kind=dbl), dimension(vectorstotal), intent(inout) :: c_i
@@ -64,7 +65,7 @@ call initialState(initialVec)
 
 !initial stat
 do i=1,numI
-    c_i(initialVec(i))=norm
+    c_i(initialVec(modeNum,i))=norm
 enddo
 
 !start iterations

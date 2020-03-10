@@ -14,13 +14,13 @@ subroutine reduced_density_matrix(HT,vectorstotal,red_rho,c_i)
 use constants
 use parameters
 
-integer, parameter :: Nrho = N-2
+integer :: Nrho 
 
 integer :: nit,Ninit,ex
-integer, dimension(N) :: vec
-integer :: vectors1ex = Nrho
-integer :: vectors2ex = Nrho
-integer :: vectors3ex = Nrho
+integer, dimension(:), allocatable :: vec
+integer :: vectors1ex 
+integer :: vectors2ex
+integer :: vectors3ex 
 integer :: vectorstotalrho
 
 integer, allocatable, dimension(:,:)  :: Hrho1,Hrho2,Hrho3,HrhoT
@@ -34,6 +34,14 @@ complex(kind=dbl), dimension (4,4), intent(inout) :: red_rho
 
 integer :: i,j,k,v,w,jj,vv
 logical :: ok = .false.
+
+if (allocated(vec)) deallocate(vec)
+allocate(vec(N))
+
+Nrho = N - 2
+vectors1ex = Nrho
+vectors2ex = Nrho
+vectors3ex = Nrho
 
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,7 +84,7 @@ do i=1,Nrho
     enddo
 enddo
 
-HrhoT(2:,:) = Hrho1
+HrhoT(2:vectors1ex+1,1:Nrho) = Hrho1(1:vectors1ex,1:Nrho)
 
 !Second subsector (two excitations):
 
