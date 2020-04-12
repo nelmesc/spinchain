@@ -1,61 +1,33 @@
-This code solves the Schrodinger equation of a set of interacting qubits in a system defined under the XY Heisenberg Hamiltonian. The dynamics of the system is obtained by evolving the eigenstates (obtained from direct diagonalization of the Hamiltonian) and other parameters such as Fidelity or Entanglement of Formation are computed.
+This code solves the Schrodinger equation of a set of interacting qubits in a specified topology. More specifically this branch contains tools to use a genetic algorithm to optimise the couplings between such qubits to tailor the network for a specifc purpose, such as fast Perfect State Transfer (PST) or performing rudimentary quantum gates.
 
-It also allows for the addition of static perturbations and time delays between injections. It computes several disorder realisations and outputs the average of the resultant parameters. 
+See https://github.com/estaremp/spinchain/wiki for more info on the original code.
 
-Plots created through python (matplotlib) scripts are also generated upon request. 
+# Compilation
 
-See https://github.com/estaremp/spinchain/wiki for more info.
+To compile this software simply use the make command in the directory containing the makefile:
 
-# Content 
-* Schrodinger equation 
-    * Integration method **(TBI)**
-    * Diagonalization method 
-* Generation of coupling scheme 
-    * Uniform
-    * Dimerised
-        * SSH(a) and SSH(b) - (see https://arxiv.org/abs/1609.07516)
-        * ABC - (see https://arxiv.org/abs/1612.05097)
-    * PST - (see https://arxiv.org/abs/1603.01881)        
-* Generation of XY Hamiltonian
-    * Linear chain
-    * Star networks
-    * Lattices **(TBI)**
-* Adding errors
-    * Diagonal random disorder 
-    * Off diagonal random disorder 
-    * Injection time delays **(TBI)**
-* Diagonalization of the Hamiltonian
-    * Eigenvectors and Eigenenergies
-    * Site occupation probabilities
-* Dynamics
-    * Fidelity
-    * Site occupation probabilities
-* Entanglement 
-    * EOF **(TBI)**
-    * Entropy **(TBI)**
+```bash
+make
+```
 
-***
+# Usage
 
-# Compile and run
+To use the resulting software type the following command to view the command line help:
 
-**Requirements:**
-This is prepared be compiled by: 
-* GNU-GCC 6.3.9 gfortran (https://gcc.gnu.org/wiki/GFortran)
-* Python 3.7. (https://www.python.org/download/releases/python-370/)
-* BLAS libraries (http://www.netlib.org/blas/) 
-* LAPACK libraries (http://www.netlib.org/lapack/)
-* MATPLOTLIB (https://matplotlib.org/)
+```bash
+spinnet --help
+```
 
-NOTE: Still not tested in other versions/environments.
+An example which opens the visualiser for a network:
 
-**Download and run:**
-1. git clone https://github.com/estaremp/spinchain.git
-2. set initial conditions in module PARAMETERS.f90
-3. ./run.sh
+```bash
+spinnet -v "<A|D>AB500BC500CD500#000"
+```
 
-***
+An example which uses the genetic algorithm to optimise the couplings for speed:
 
-# Output
-* General output _spinchain.out_
-* Data files _*.data_
-* Plots _*.png_
+```bash
+spinnet -o "<A|D>AB500BC500CD500#000"
+```
+
+
