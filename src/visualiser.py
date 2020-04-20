@@ -72,7 +72,7 @@ class Application(tk.Frame):
 
         if len(sys.argv) > 2 and len(sys.argv[2]) > 5:
 
-            # If given a string as an argument, load it into a network
+            # If given a string as the second argument, load it into a network
             self.generate_from_genome(sys.argv[2])
             self.generate_genome()
             self.draw_connections()
@@ -107,6 +107,7 @@ class Application(tk.Frame):
             elif val == "F": return 15
             else: print("ERROR - " + val)
 
+    # When the enter key is pressed inside the genome entry box
     def process_enter(self, event):
 
         genome = self.genome_string.get(1.0, tk.END).strip()
@@ -166,14 +167,12 @@ class Application(tk.Frame):
         numNodes = 0
         uniqueLetters = []
 
-        # Determine the number of digits used TODO 1
+        # Determine the number of digits used
         numDigits = 0
         i = 2
         while gen[i] in "0123456789":
             numDigits += 1
             i += 1
-
-        print(numDigits)
 
         # Ensure it's at least somewhat valid
         if (len(gen))%(2+numDigits) != 0:
@@ -205,11 +204,11 @@ class Application(tk.Frame):
 
             # If the letters are the wrong way round, make the coupling negative
             if ord(gen[i]) > ord(gen[i+1]):
-                value = -value
-                print("flipped" + str(value))
-
-            self.connections.append({"a": uniqueLetters.index(gen[i]), "b": uniqueLetters.index(gen[i+1]), 
-                                     "val": value, "dir": newPos[int(i/(2+numDigits))]})
+                self.connections.append({"a": uniqueLetters.index(gen[i+1]), "b": uniqueLetters.index(gen[i]), 
+                                         "val": -value, "dir": newPos[int(i/(2+numDigits))]})
+            else:
+                self.connections.append({"a": uniqueLetters.index(gen[i]), "b": uniqueLetters.index(gen[i+1]), 
+                                         "val": value, "dir": newPos[int(i/(2+numDigits))]})
 
         deltaPix = 150
 
