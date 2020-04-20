@@ -58,7 +58,8 @@ function outputHelp {
 	echo "  This will make optimisation much faster but much more specific."
 	echo " "
 	echo "  At the end is visual info, specifying the angle of each coupling."
-	echo "  0 represents right, 4 down, 8 left, B up (hex notation clockwise from 0)."
+	echo "  Hexadecimal clockwise from 0 in 22.5 degree increments."
+	echo "  0 represents right, 4 is down, 8 is left, C is up."
 	echo " "
 	exit 1
 
