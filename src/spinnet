@@ -27,7 +27,9 @@ function outputHelp {
 	echo "  -v --visualise         visualise the network instead of simulating"
 	echo "  -o --optimise          optimise the couplings using a GA"
 	echo "  -t --time              just output a time estimate for optimisation"
-	echo "  -c --convert    [int]  convert the string to a certain num of digits"
+	echo "  -s --scaling		   generate some graphs showing the scaling"
+	echo "  -d --delete  		   delete all output folders in this directory"
+	echo "  -c --convert     [int] convert the string to a certain num of digits"
 	echo " "
 	echo "Optimisation Flags:"
 	echo " "
@@ -85,6 +87,7 @@ do
 	then
 
 		stopAfter=true
+		isGenetic=true
 
 	elif [ "$nextIs" = "cores" ] ;
 	then
@@ -97,10 +100,82 @@ do
 
 		nextIs="cores"
 
+	elif [ "$var" = "-d" ] || [ "$var" = "--delete" ] ;
+	then
+
+		rm -r output*
+		exit 1
+
 	elif [ "$var" = "-v" ] || [ "$var" = "--visualise" ] ;
 	then
 
 		$parent_path/spinnet-vis "$@"
+		exit 1
+
+	elif [ "$var" = "-s" ] || [ "$var" = "--scaling" ] ;
+	then
+
+		echo "this should only take about 5 minutes"
+
+		> scaling1Excite.dat
+		echo "running for 3 sites with 1 excitation"
+		echo 3 $(source $0 -C 1 -t "<A|C>AB500BC500") >> scaling1Excite.dat
+		echo "running for 4 sites with 1 excitation"
+		echo 4 $(source $0 -C 1 -t "<A|D>AB500BC500CD500") >> scaling1Excite.dat
+		echo "running for 5 sites with 1 excitation"
+		echo 5 $(source $0 -C 1 -t "<A|E>AB500BC500CD500DE500") >> scaling1Excite.dat
+		echo "running for 6 sites with 1 excitation"
+		echo 6 $(source $0 -C 1 -t "<A|F>AB500BC500CD500DE500EF500") >> scaling1Excite.dat
+		echo "running for 7 sites with 1 excitation"
+		echo 7 $(source $0 -C 1 -t "<A|G>AB500BC500CD500DE500EF500FG500") >> scaling1Excite.dat
+		echo "running for 8 sites with 1 excitation"
+		echo 8 $(source $0 -C 1 -t "<A|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling1Excite.dat
+
+		> scaling2Excite.dat
+		echo "running for 3 sites with 2 excitations"
+		echo 3 $(source $0 -C 1 -t "<AB|C>AB500BC500") >> scaling2Excite.dat
+		echo "running for 4 sites with 2 excitations"
+		echo 4 $(source $0 -C 1 -t "<AB|D>AB500BC500CD500") >> scaling2Excite.dat
+		echo "running for 5 sites with 2 excitations"
+		echo 5 $(source $0 -C 1 -t "<AB|E>AB500BC500CD500DE500") >> scaling2Excite.dat
+		echo "running for 6 sites with 2 excitations"
+		echo 6 $(source $0 -C 1 -t "<AB|F>AB500BC500CD500DE500EF500") >> scaling2Excite.dat
+		echo "running for 7 sites with 2 excitations"
+		echo 7 $(source $0 -C 1 -t "<AB|G>AB500BC500CD500DE500EF500FG500") >> scaling2Excite.dat
+		echo "running for 8 sites with 2 excitations"
+		echo 8 $(source $0 -C 1 -t "<AB|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling2Excite.dat
+
+		> scaling3Excite.dat
+		echo "running for 3 sites with 3 excitations"
+		echo 3 $(source $0 -C 1 -t "<ABC|C>AB500BC500") >> scaling3Excite.dat
+		echo "running for 4 sites with 3 excitations"
+		echo 4 $(source $0 -C 1 -t "<ABC|D>AB500BC500CD500") >> scaling3Excite.dat
+		echo "running for 5 sites with 3 excitations"
+		echo 5 $(source $0 -C 1 -t "<ABC|E>AB500BC500CD500DE500") >> scaling3Excite.dat
+		echo "running for 6 sites with 3 excitations"
+		echo 6 $(source $0 -C 1 -t "<ABC|F>AB500BC500CD500DE500EF500") >> scaling3Excite.dat
+		echo "running for 7 sites with 3 excitations"
+		echo 7 $(source $0 -C 1 -t "<ABC|G>AB500BC500CD500DE500EF500FG500") >> scaling3Excite.dat
+		echo "running for 8 sites with 3 excitations"
+		echo 8 $(source $0 -C 1 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling3Excite.dat
+
+		> scalingParallel.dat
+		echo "running for 8 sites with 3 excitations on 1 core"
+		initial=$(source $0 -C 1 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo 1 1 >> scalingParallel.dat
+		echo "running for 8 sites with 3 excitations on 2 cores"
+		new=$(source $0 -C 2 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo 2 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
+		echo "running for 8 sites with 3 excitations on 4 cores"
+		new=$(source $0 -C 4 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo 4 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
+		echo "running for 8 sites with 3 excitations on 8 cores"
+		new=$(source $0 -C 8 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo 8 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
+
+		python3 $parent_path/scaling.py
+		rm scalingParallel.dat scaling1Excite.dat scaling2Excite.dat scaling3Excite.dat 
+
 		exit 1
 
 	elif [ "$var" = "--help" ] || [ "$var" = "-h" ] ;
@@ -121,8 +196,6 @@ export OPENBLAS_NUM_THREADS=1
 if [ "$isGenetic" = "true" ] ;
 then
 	mpirun --bind-to core -np $numproc $parent_path/run "$@"
-	python3 $parent_path/genetic.py genetic.out
-	isGenetic=false
 else
 	$parent_path/run "$@"
 fi
@@ -130,6 +203,11 @@ fi
 if [ "$stopAfter" = "true" ]
 then
 	exit 1
+fi
+
+if [ "$isGenetic" = "true" ] ;
+	python3 $parent_path/genetic.py genetic.out
+	isGenetic=false
 fi
 
 #Create output directory
@@ -226,7 +304,7 @@ fi
 mv ./*.out ./output 2> /dev/null
 mkdir ./output/data
 mv ./*.data ./output/data 2> /dev/null
-rm -r ./output-latest
+rm -f -r ./output-latest
 cp -r output ./output-latest
 mv output ./output-$(date -u +"%F-%H-%M")
 

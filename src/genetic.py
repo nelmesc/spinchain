@@ -6,7 +6,7 @@ import sys
 from pylab import *
 
 # Set up the figure
-plt.figure(figsize=(10,7))
+plt.figure(figsize=(10,8))
 
 # Create the axes
 ax1=plt.subplot()
@@ -29,21 +29,21 @@ with open(sys.argv[1], "r") as f:
 ax1.set_xlim([1,generation[-1]])
 ax1.set_ylim([0,100])
 
-plt.plot(generation,worst,color='red',lw=2,label='worst')
-plt.plot(generation,average,color='orange',lw=2,label='average')
-plt.plot(generation,best,color='green',lw=2,label='best')
+# Plot each line
+plt.plot(generation,worst,color='red', lw=2, label='worst')
+plt.plot(generation,average,color='orange', lw=2, label='average')
+plt.plot(generation,best,color='green', lw=2, label='best')
 
-#SET SIZE OF AXIS TICKS
+# Set the size of the axis ticks
 ax1.tick_params(axis='y', labelsize=20)
 ax1.tick_params(axis='x', labelsize=20)
 
-#SET LABEL NAMES
-plt.xlabel('generation',fontsize=25,color='black')
-plt.ylabel('fitness',fontsize=25,color='black')
+# Set the names of the axis labels
+plt.xlabel('generation', fontsize=20, color='black')
+plt.ylabel('fitness', fontsize=20, color='black')
 
-#LEGEND
-l=legend(bbox_to_anchor=(0, 1), loc='upper left', ncol=1,frameon=False,borderaxespad=0.,fontsize=20)
+# Add the legend
+l=legend(loc='lower right', ncol=1, fontsize=20)
 
-#SAVE AS PNG PICTURE
-savefig('genetic.png',transparent=False)
-plt.show()
+# Save as a png
+savefig('genetic.png', transparent=False)

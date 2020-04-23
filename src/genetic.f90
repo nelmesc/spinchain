@@ -82,7 +82,9 @@ subroutine solve_genetic()
     real(kind=dbl)  :: mutate_amount_real, mutate_delta
 
     ! Open the output file
-    open(unit=geneticFile, file="genetic.out")
+    if (.not. stop_after_time) then
+        open(unit=geneticFile, file="genetic.out")
+    end if
 
     ! Get rid of any <> or # in the genome string
     call process_directives(custom_string, init_direct, pos_direct)

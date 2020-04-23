@@ -236,8 +236,10 @@ subroutine process_directives(string, init_direct, pos_direct)
 
     ! Ignore the positional directive
     i = index(string, "#")
-    if (present(pos_direct)) pos_direct = string(i:)
-    string = trim(string(:i-1))
+    if (i > 0) then
+        if (present(pos_direct)) pos_direct = string(i:)
+        string = trim(string(:i-1))
+    end if
 
     ! Count the number of different exicitation/target pairs
     numModes = 0

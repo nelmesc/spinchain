@@ -1,13 +1,9 @@
-#Makefile
-
-#Compile
-
-#Define directories
+# Define directories
 src = src
 plot = src/Plotting
 bin = bin
 
-#Define variables
+# Define variables
 wrapper = $(bin)/wrapper.o  
 main = $(src)/main.f90  
 gen = $(src)/genetic.f90  
@@ -15,25 +11,24 @@ const = $(src)/CONSTANTS.f90
 param = $(src)/PARAMETERS.f90
 depen = $(src)/DEPENDENCIES.f90
 
-#Compilers 
-#f90comp = gfortran
+# Compilers 
 f90comp = mpifort
 Pycomp = python3
 
-#Libraries
+# Libraries
 libs = -lopenblas
 
 # Install directory
 installDir = "/usr/share/spinnet"
 binDir = "/usr/bin/"
 
-#flags
+# Flags to use
 flagsFast = -O3 -march=native
 flagsDebug = -O3 -g -Wall -fcheck=all -pg
 #flags = $(flagsDebug)
 flags = $(flagsFast)
 
-#Compile fortran first create bin, then execute
+# Compile fortran first create bin, then execute
 running: clean | $(bin) exec moving
 
 dependancies:
@@ -80,7 +75,7 @@ $(bin)/wrapper.o: $(src)/wrapper.f90
 	$(f90comp) -c $(gen) -o $(bin)/g.o $(flags) $(libs)
 	$(f90comp) -c $^ -o $@ $(flags)
 	
-#Clean
+# Clean
 clean:
 	rm -f run 
 	rm -f *.mod
