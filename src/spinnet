@@ -53,7 +53,7 @@ function outputHelp {
 	echo "  Duplicates (AA500) would represent a relative on-site energy."
 	echo " "
 	echo "  The start denotes the  <initial| and |target> states."
-	echo "  A+B is the Bell state of A and B, whilst CD is is both C and D at once."
+	echo "  A+B is the Bell state of A and B, whilst CD is both C and D at once."
 	echo "  These can have coefficients such as 3, i, (3+2i) to optimise phases."
 	echo " "
 	echo "  Can also use something like @3.5 at the start to specify a time."
