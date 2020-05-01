@@ -205,7 +205,8 @@ then
 	exit 1
 fi
 
-if [ "$isGenetic" = "true" ] ;
+if [ "$isGenetic" = "true" ]
+then
 	python3 $parent_path/genetic.py genetic.out
 	isGenetic=false
 fi
