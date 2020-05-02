@@ -35,7 +35,7 @@ program wrapper
 
             use_genetic = .true.
 
-        else if (args(i) == "-s" .or. args(i) == "--speed") then
+        else if (args(i) == "-f" .or. args(i) == "--fast") then
 
             time_scale = time_scale * 100.0_dbl
 

@@ -37,7 +37,7 @@ function outputHelp {
 	echo "  -n --negative           allow negative couplings"
 	echo "  -x --exponential        force the fitness to use exponential scaling"
 	echo "  -l --linear             force the fitness to use linear scaling"
-	echo "  -s --speed              focus the optimisation more on speed"
+	echo "  -f --fast               focus the optimisation more on speed"
 	echo "  -g --genomes     [int]  specify the number of genomes        (def 1024)  "
 	echo "  -G --generations [int]  specify the number of generations    (def 200)"
 	echo "  -m --mutate      [int]  specify the initial mutation amount  (def 20% max)"
