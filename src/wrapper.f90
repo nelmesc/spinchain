@@ -9,7 +9,7 @@ program wrapper
     ! Vars for processing command args
     character(max_string_size), dimension(:), allocatable :: args
     integer                    :: num_args
-    integer                    :: i
+    integer                    :: i, j, k
     integer                    :: convertTo = -1
 
     ! Get the amount of arguments passed to the program
@@ -109,7 +109,17 @@ program wrapper
 
         else if (len_trim(args(i)) >= 5 .and. args(i)(1:1) /= "-" .and. .not. is_int(args(i))) then
 
-            custom_string = args(i)
+            ! Strip any spaces or newlines
+            k = 1
+            do j = 1, len_trim(args(i))
+                if (args(i)(j:j) /= " " .and. args(i)(j:j) /= new_line("a")) then
+                    custom_string(k:k) = args(i)(j:j)
+                    k = k + 1
+                end if
+            end do
+
+            print *, custom_string
+
             custom = .true.
 
         else if (args(i) == "-C" .or. args(i) == "--cores") then

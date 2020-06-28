@@ -128,6 +128,9 @@ class Application(tk.Frame):
 
         global numDigits
 
+        # Strip any spaces and newlines
+        gen = gen.replace("\n", "").replace(" ", "")
+
         print("Loading: \"" + gen + "\"")
 
         # Process the positional directive
