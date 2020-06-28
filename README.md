@@ -50,7 +50,7 @@ Results are placed in a folder called "output-latest" as well as a backup folder
 | ------------------------------------------------------------------------------- | :-----------: | :-------------------: | ------------- |
 | "<A\|G>AB6364BC8216CD9000DE9000EF8216FG6364#000000"                             | 99.9% | 5.6 | 7-site linear PST chain, theoretically 100% fidelity |
 | "<G\|B>AB7487AC9569CD9952DE9898EF9525FG7464#088888"                             | 99.7% | 5.4 | slightly faster than the 7-site PST chain at the expense of a small amount of fidelity |
-| "<A\|G>AB9924BC9363CD9820DE9895EF9309FG9972FH9251DH9943DI9978BI9289#0E2E206262" | 99.7% | 3.8 | significantly faster than the 7-site linear PST chain at the expense of two extra non-linear nodes |
-| "@12.4<R+A+RA\|S+F-SF>AB2446BC4482CD8587DE6111EF2608BG1270CH0187GH0288HI9016DI0174IJ9763EJ0573GK8936KL0052HL6187LM9969IM0278MN7059JN9980NO0601OP5783MP0141KQ1592QR2524OS2541QT4791LT0023PT8683#00000CC00C0CC0C0C0CC8CC800C8" | 94.9% | 12.4 | a two-qubit controlled phase gate using a 4x4 grid network |
+| "<A\|G>AB9924BC9363CD9820DE9895EF9309FG9972FH9251<br>DH9943DI9978BI9289#0E2E206262" | 99.7% | 3.8 | significantly faster than the 7-site linear PST chain at the expense of two extra non-linear nodes |
+| "@12.4<R+A+RA\|S+F-SF>AB2446BC4482CD8587D<br>E6111EF2608BG1270CH0187GH0288HI9016<br>DI0174IJ9763EJ0573GK8936KL0052HL6187<br>LM9969IM0278MN7059JN9980NO0601OP5783MP0141KQ1592<br>QR2524OS2541QT4791LT0023<br>PT8683#00000CC00C0CC0C0C0CC8CC800C8" | 94.9% | 12.4 | a two-qubit controlled phase gate using a 4x4 grid network |
 
 
