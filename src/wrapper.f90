@@ -118,8 +118,6 @@ program wrapper
                 end if
             end do
 
-            print *, custom_string
-
             custom = .true.
 
         else if (args(i) == "-C" .or. args(i) == "--cores") then
