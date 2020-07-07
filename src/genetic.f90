@@ -35,8 +35,13 @@ subroutine solve_genetic()
     ! The temporary array generated using population, before becoming population
     character(max_string_size), dimension(genomes_per_generation) :: population_new
 
+    ! Temp vars used to return the dynamics when creating an animation
+    integer :: bestIndex
+    real (kind=dbl) :: bestFit
+    real (kind=dbl), dimension(steps) :: bestDynams
+
     ! Unit and file to write to
-    integer, parameter :: geneticFile = 35
+    integer, parameter :: geneticFile = 35, animationFile = 36
 
     ! Loop counters
     integer         :: i, j
@@ -63,15 +68,6 @@ subroutine solve_genetic()
     ! Where this node should start and stop the processing of population/fitness
     integer         :: array_start, array_end, array_diff
 
-    ! For keeping track of how many removed by asteroids
-    integer         :: removed, removed_local
-
-    ! For saving the max fitness, and the corresponding minimum allowed fitness
-    real (kind=dbl) :: max_fit, min_fit
-
-    ! The location of the max fitness
-    Integer         :: max_loc
-
     ! Keep track of whether the mutation amount has been reduced
     logical         :: has_changed_mutate
 
@@ -81,9 +77,16 @@ subroutine solve_genetic()
     ! Hold the change in mutate rate as a real
     real(kind=dbl)  :: mutate_amount_real, mutate_delta
 
-    ! Open the output file
     if (.not. stop_after_time) then
+
+        ! Open the output file
         open(unit=geneticFile, file="genetic.out")
+
+        ! Open the file for gif production
+        if (create_animation) then
+            open(unit=animationFile, file="anim.dat")
+        end if
+
     end if
 
     ! Get rid of any <> or # in the genome string
@@ -232,7 +235,7 @@ subroutine solve_genetic()
 
     ! Sync the population between nodes
     if (num_proc > 1) then
-        call sync_pop(population, array_start, array_end, array_diff, on_root_node, num_proc)
+        call sync_pop(population, array_start, array_end, array_diff)
     end if
 
     ! Mutatation amount hasn't been changed yet
@@ -248,7 +251,7 @@ subroutine solve_genetic()
 
         ! Sync the fitnesses between nodes
         if (num_proc > 1) then
-            call sync_fit(fitnesses, array_start, array_end, array_diff, on_root_node, num_proc)
+            call sync_fit(fitnesses, array_start, array_end, array_diff)
         end if
 
         ! Sum the fitnesses
@@ -262,10 +265,22 @@ subroutine solve_genetic()
 
             ! Output info about the current genome
             if (.not. stop_after_time) then
+
+                ! Genetic output
                 write(geneticFile, "(A,I4,A,f6.2,A,f6.2,A,f6.2,A,f8.1,A,I6,A)") "|    ", &
                         & i, "    | ", minval(fitnesses), " | ", &
                         & fitness_sum / genomes_per_generation, "  | ", maxval(fitnesses), " |    ", &
                         & current_time-start_time, " | ", mutate_amount, " | "
+
+                ! Output for animation TODO
+                if (create_animation) then
+                    
+                    bestIndex = maxloc(fitnesses, 1)
+                    bestFit = genetic_fitness(population(bestIndex), best_fid, best_time, best_qual, numModes, bestDynams)
+                    write(animationFile, "(A,100(f10.5))") trim(population(bestIndex)), bestDynams
+
+                end if
+
             end if
 
             ! After the first generation, give a time estimate in a nice human readable form
@@ -339,7 +354,7 @@ subroutine solve_genetic()
 
         ! Sync the population between nodes
         if (num_proc > 1) then
-            call sync_pop(population, array_start, array_end, array_diff, on_root_node, num_proc)
+            call sync_pop(population, array_start, array_end, array_diff)
         end if
 
         ! Lower the mutation rate
@@ -355,7 +370,7 @@ subroutine solve_genetic()
 
     ! Sync the population between nodes
     if (num_proc > 1) then
-        call sync_fit(fitnesses, array_start, array_end, array_diff, on_root_node, num_proc)
+        call sync_fit(fitnesses, array_start, array_end, array_diff)
     end if
 
     ! Only do the final output once
@@ -408,6 +423,12 @@ subroutine solve_genetic()
     ! Stop the parallelisation
     call MPI_FINALIZE(mpi_error)
 
+    ! Close files
+    close(geneticFile)
+    if (create_animation) then
+        close(animationFile)
+    end if
+
 end subroutine
 
 !=========================================================================!
@@ -419,7 +440,7 @@ end subroutine
 ! Written by Luke Mortimer, October 2019                                  !
 !=========================================================================!
 
-function genetic_fitness(string, fid, time, qual, modes)
+function genetic_fitness(string, fid, time, qual, modes, dynams)
 
     use constants
     use parameters
@@ -431,12 +452,11 @@ function genetic_fitness(string, fid, time, qual, modes)
 
     ! Outputs
     real(kind=dbl) :: genetic_fitness
+    real(kind=dbl), dimension(:), intent(out) :: fid, time, qual
+    real(kind=dbl), dimension(steps), intent(out), optional :: dynams
 
     ! Array to hold the various fitnesses for each mode
     real(kind=dbl), dimension(modes) :: fitnesses
-
-    ! Optional outputs
-    real(kind=dbl), dimension(:), intent(out) :: fid, time, qual
 
     ! Get the coefficients from dynamics to search for the maximum fidelity
     complex(kind=dbl), dimension(:, :), allocatable :: c_vs_t
@@ -482,7 +502,7 @@ function genetic_fitness(string, fid, time, qual, modes)
             searchArray = 0.0_dbl
             do l = 1, steps
 
-                complexSum = cmplx(0.0_dbl, 0.0_dbl)
+                complexSum = cmplx(0.0, 0.0)
 
                 ! Sum <b|a>
                 do i = 1, numF
@@ -498,6 +518,11 @@ function genetic_fitness(string, fid, time, qual, modes)
                 searchArray(l) = abs(complexSum) ** 2
 
             end do
+
+            ! If told to, return the fidelity vs time array
+            if (present(dynams)) then
+                dynams = searchArray
+            end if
 
             ! Find the location where the system is closest to the target state
             maxIndex = startIndex-1+maxloc(searchArray(startIndex:endIndex), 1)
@@ -521,7 +546,7 @@ function genetic_fitness(string, fid, time, qual, modes)
 
             quality = 1.0_dbl
             fidelity = 0.0_dbl
-            complexSum = cmplx(0.0_dbl, 0.0_dbl)
+            complexSum = cmplx(0.0, 0.0)
 
             ! For each component of the target vector
             do i = 1, numF
@@ -742,7 +767,7 @@ subroutine genetic_mutate(string)
     ! Read the val (can't do I0 internal reads)
     read(string(numLoc:numLoc+coupling_digits-1), format_string) couplingVal
 
-    ! Make the value negative if the letters are the wrong way round TODO 1
+    ! Make the value negative if the letters are the wrong way round 
     if (ichar(string(numLoc-2:numLoc-2)) > ichar(string(numLoc-1:numLoc-1))) then
         couplingVal = -couplingVal
         startedNegative = .true.
@@ -757,6 +782,7 @@ subroutine genetic_mutate(string)
         couplingVal = max(min(couplingVal + numDelta, max_val), min_val)
     end if
 
+    ! Don't ever fully remove a node, to prevent later errors
     if (couplingVal == 0) couplingVal = 1
 
     ! Switch letters if there is a change of sign
@@ -789,7 +815,7 @@ end subroutine
 ! Written by Luke Mortimer, October 2019                                  !
 !=========================================================================!
 
-subroutine sync_fit(fitnesses, array_start, array_end, array_diff, on_root_node, num_proc)
+subroutine sync_fit(fitnesses, array_start, array_end, array_diff)
 
     use constants
     use parameters
@@ -797,12 +823,9 @@ subroutine sync_fit(fitnesses, array_start, array_end, array_diff, on_root_node,
     implicit none
 
     real(kind=dbl), dimension(genomes_per_generation), intent(inout) :: fitnesses
-    integer, intent(in) :: array_start, array_end, array_diff, num_proc
-    logical, intent(in) :: on_root_node
-
+    integer, intent(in) :: array_start, array_end, array_diff
     real(kind=dbl), dimension(array_diff) :: fitnessesLocal
-
-    integer :: i, mpi_error
+    integer :: mpi_error
 
     fitnessesLocal = fitnesses(array_start:array_end)
 
@@ -826,18 +849,16 @@ end subroutine
 ! Written by Luke Mortimer, October 2019                                  !
 !=========================================================================!
 
-subroutine sync_pop(population, array_start, array_end, array_diff, on_root_node, num_proc)
+subroutine sync_pop(population, array_start, array_end, array_diff)
 
     use parameters
 
     implicit none
 
     character(max_string_size), dimension(genomes_per_generation), intent(inout) :: population
-    integer, intent(in) :: array_start, array_end, array_diff, num_proc
-    logical, intent(in) :: on_root_node
+    integer, intent(in) :: array_start, array_end, array_diff
     character(max_string_size), dimension(array_diff) :: popLocal
-
-    integer :: i, mpi_error
+    integer :: mpi_error
 
     popLocal = population(array_start:array_end)
 

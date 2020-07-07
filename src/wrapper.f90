@@ -180,6 +180,8 @@ contains
         integer :: i
         integer :: start_of_main
 
+        start_of_main = 1
+
         ! Determine where the main section starts
         do i = 1, len_trim(genome_string)
 
@@ -213,12 +215,10 @@ contains
 
         character(*), intent(inout) :: genome_string
         integer, intent(in) :: from, to
-
-        integer :: i
-
-        integer :: delta, stringLen
+        integer :: i, delta, start_of_main
 
         delta = to-from
+        start_of_main = 1
 
         if (delta == 0) return
 
