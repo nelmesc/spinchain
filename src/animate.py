@@ -16,7 +16,7 @@ betweenNodes = 100
 maxSize = 5000
 couplingWidth = 5
 
-# TODO
+# How often it should sample, 5 means create one frame every 5 genomes
 skip = 1
 
 # How long the gif should be in seconds
@@ -225,7 +225,7 @@ for index in range(0, len(genomes), skip):
     im3 = Image.new('RGB', (dynamicsWidth+networkWidth+padding, height), (255, 255, 255))
 
     # Combine images
-    im3.paste(im1, (int(networkWidth/2-(maxX-minX)/2-nodeSize), int(height/2-(maxY-minY)/2-nodeSize)))
+    im3.paste(im1, (int(networkWidth/2-im1.size[0]/2), int(height/2-im1.size[1]/2)))
     im3.paste(im2, (networkWidth+padding, 0))
 
     # Add all to arrays
@@ -233,6 +233,7 @@ for index in range(0, len(genomes), skip):
     dynamicsImages.append(im2)
     combinedImages.append(im3)
 
+    # Use the first ones as the basis for the gif
     if index == 0:
         im1First = im1
         im2First = im2
