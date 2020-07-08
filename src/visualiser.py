@@ -218,10 +218,9 @@ class Application(tk.Frame):
         # Assume the first node is in the centre
         positions = {1: [0.0,0.0]}
 
+        # Repeat until all positions found
         maxIter = 5
         iteration = 1
-
-        # Repeat until all positions found
         while len(positions.keys()) < numNodes and iteration < maxIter:
 
             # Go through the connections, finding the next connection with one known and one unknown position

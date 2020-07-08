@@ -272,12 +272,12 @@ subroutine solve_genetic()
                         & fitness_sum / genomes_per_generation, "  | ", maxval(fitnesses), " |    ", &
                         & current_time-start_time, " | ", mutate_amount, " | "
 
-                ! Output for animation TODO
+                ! Output for animation 
                 if (create_animation) then
                     
                     bestIndex = maxloc(fitnesses, 1)
                     bestFit = genetic_fitness(population(bestIndex), best_fid, best_time, best_qual, numModes, bestDynams)
-                    write(animationFile, "(A,100(f10.5))") trim(population(bestIndex)), bestDynams
+                    write(animationFile, "(A,A,100(f10.5))") trim(population(bestIndex)), trim(pos_direct), bestDynams
 
                 end if
 
