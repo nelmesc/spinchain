@@ -84,7 +84,7 @@ subroutine solve_genetic()
 
         ! Open the file for gif production
         if (create_animation) then
-            open(unit=animationFile, file="anim.dat")
+            open(unit=animationFile, file="anim.data")
         end if
 
     end if

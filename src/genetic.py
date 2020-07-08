@@ -41,6 +41,7 @@ ax1.tick_params(axis='x', labelsize=20)
 # Set the names of the axis labels
 plt.xlabel('generation', fontsize=20, color='black')
 plt.ylabel('fitness', fontsize=20, color='black')
+plt.tight_layout()
 
 # Add the legend
 l=legend(loc='lower right', ncol=1, fontsize=20)

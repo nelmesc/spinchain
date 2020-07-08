@@ -11,12 +11,15 @@ numproc=$(lscpu | grep "Core(s)" | awk '{print $4}')
 # Help function
 function outputHelp {
 
-	echo "---------------------------------------------------"
-	echo "|        Spinnet - Spin Network Simulator         |"
-	echo "---------------------------------------------------"
-	echo "| Developed by Marta Estarellas and Luke Mortimer |"
-	echo "|            University of York, 2019             |"
-	echo "---------------------------------------------------"
+	echo "-------------------------------------------------------"
+	echo "|          Spinnet - Spin Network Simulator           |"
+	echo "-------------------------------------------------------"
+	echo "|   Developed by Marta Estarellas and Luke Mortimer   |"
+	echo "|              University of York, 2019               |"
+	echo "-------------------------------------------------------"
+	echo "| Non-genetic: https://github.com/estaremp/spinchain  |"
+	echo "| Genetic:     https://github.com/Lumorti/spinchain   |"
+	echo "-------------------------------------------------------"
 	echo " "
 	echo "Usage:"
 	echo " "
@@ -46,22 +49,21 @@ function outputHelp {
 	echo " "
 	echo "Network strings:"
 	echo " "
-	echo "  e.g. <A+iB|CD>AB500BC500CD500#0000"
+	echo "  e.g. \"<A|E>AB500BC500CD500DE500#0000\""
 	echo " "
-	echo "  This represents a linear chain with uniform couplings going from A->B->C->D."
+	echo "  This represents a linear chain with uniform couplings going from A->B->C->D->E."
 	echo "  The values (here all 500) are relative to the maximum value."
 	echo "  Duplicates (AA500) would represent a relative on-site energy."
 	echo " "
 	echo "  The start denotes the  <initial| and |target> states."
-	echo "  A+B is the Bell state of A and B, whilst CD is both C and D at once."
+	echo "  A+B is a Bell state of A and B, whilst CD is both C and D at once."
 	echo "  These can have coefficients such as 3, i, (3+2i) to optimise phases."
 	echo " "
 	echo "  Can also use something like @3.5 at the start to specify a time."
 	echo "  This will make optimisation much faster but much more specific."
 	echo " "
-	echo "  At the end is visual info, specifying the angle of each coupling."
-	echo "  Hexadecimal clockwise from 0 in 22.5 degree increments."
-	echo "  0 represents right, 4 is down, 8 is left, C is up."
+	echo "  See the above GitHub repos and associated publications"
+	echo "  for more detailed info."
 	echo " "
 	exit 1
 
@@ -208,6 +210,10 @@ fi
 if [ "$isGenetic" = "true" ]
 then
 	python3 $parent_path/genetic.py genetic.out
+	python3 $parent_path/animate.py anim.data
+	mkdir -p output/plots
+	mv ./*.png ./output/plots 2> /dev/null
+	mv ./*.gif ./output/plots 2> /dev/null
 	isGenetic=false
 fi
 
@@ -266,7 +272,7 @@ then
 		fi
 
 		#If plots have been created move them to the required folder
-		mkdir output/plots
+		mkdir -p output/plots
 		mv ./*.png ./output/plots
 
 	fi
@@ -294,7 +300,7 @@ then
 		python3 $parent_path/exmap.py $TOTALTIME
 
 		#If plots have been created move them to the required folder
-		mkdir output/plots
+		mkdir -p output/plots
 		mv ./*.png ./output/plots 2> /dev/null
 
 	fi
@@ -303,7 +309,7 @@ fi
 
 # Rename the output directory with the date and time
 mv ./*.out ./output 2> /dev/null
-mkdir ./output/data
+mkdir -p ./output/data
 mv ./*.data ./output/data 2> /dev/null
 rm -f -r ./output-latest
 cp -r output ./output-latest

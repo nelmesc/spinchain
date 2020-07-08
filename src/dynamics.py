@@ -68,20 +68,11 @@ with open("spinchain.out", "r") as f:
         elif "FOR MODE 2" in line:
             break
 
-# print(initialIndexes)
-# print(initialCoeffs)
-# print(finalIndexes)
-# print(finalCoeffs)
-
 # Construct the vectors
 for i in range(numI):
     init = init + np.conj(initialCoeffs[i]) * fidelity[:, initialIndexes[i]]
 for i in range(numF):
     final = final + np.conj(finalCoeffs[i]) * fidelity[:, finalIndexes[i]]
-
-# Normalise the vectors
-# init = init * (numI ** -0.5)
-# final = final * (numF ** -0.5)
 
 #PLOT FIDELITY AGAINST INITIAL STATE AND TARGET STATE (CHANGE WHENEVER)
 y1 = (np.absolute(init))**2
@@ -96,9 +87,10 @@ ax1.tick_params(axis='x', labelsize=20)
 #SET LABEL NAMES
 plt.xlabel('$\mathrm{time \cdot J_{max}}$',fontsize=25,color='black')
 plt.ylabel('${\cal{F}}(t)$',fontsize=25,color='black')
+plt.tight_layout()
 
 #LEGEND
-l=legend(loc=1,frameon=False,borderaxespad=0.,fontsize=20)
+l=legend(loc=1,frameon=False,borderaxespad=0.0,fontsize=20)
 
 #SAVE AS PNG PICTURE
 savefig('dynamics.png',transparent=False)

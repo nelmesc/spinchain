@@ -20,6 +20,9 @@ character(max_string_size)            :: custom_string     = &
 ! If the program should give a time estimate and then stop
 logical :: stop_after_time = .false.
 
+! Should the program produce a data file for an animated figure
+logical :: create_animation = .true.
+
 !*Define chain topology*!:
 !* Check one *!
 logical, parameter :: linear = .true.
