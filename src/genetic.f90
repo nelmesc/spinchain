@@ -85,6 +85,8 @@ subroutine solve_genetic()
         ! Open the file for gif production
         if (create_animation) then
             open(unit=animationFile, file="anim.data")
+            write(animationFile, "(f7.3)") totalTime
+            write(animationFile, "(i0)") steps
         end if
 
     end if
@@ -477,6 +479,9 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
     ! Loop counters
     integer :: i, j, l
 
+    ! Only used if animating
+    logical :: wasSingle
+
     ! Set the start and end indices
     startIndex = int((min_time / totalTime) * steps) + 1
     endIndex = int((max_time / totalTime) * steps)
@@ -489,6 +494,12 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
     fid = 0.0_dbl
     time = 0.0_dbl
     qual = 0.0_dbl
+
+    ! If told to give full dynamics, do it
+    if (present(dynams)) then
+        wasSingle = single
+        single = .false.
+    end if
 
     ! Repeat for each mode of operation
     do j = 1, numModes
@@ -589,6 +600,11 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
         end if
 
     end do
+
+    ! Revert
+    if (present(dynams)) then
+        single = wasSingle
+    end if
 
     ! Average the fitnesses to get the overall fitness
     genetic_fitness = sum(fitnesses) / modes

@@ -124,6 +124,10 @@ program wrapper
 
         else if (args(i) == "-s" .or. args(i) == "--save") then
 
+        else if (args(i) == "-a" .or. args(i) == "--anim") then
+
+            create_animation = .true.
+
         else if (.not. is_int(args(i))) then
 
             print *, "ERROR - unknown argument: ", trim(args(i))

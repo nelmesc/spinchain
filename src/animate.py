@@ -17,11 +17,10 @@ maxSize = 5000
 couplingWidth = 5
 
 # TODO
-startTime = 1
-endTime = 10
-steps = 100
-skip = 2
-gifSeconds = 20
+skip = 1
+
+# How long the gif should be in seconds
+gifSeconds = 30
 
 # Heatmap function, val between 0 and 1 -> colour tuple
 def heatmap(val):
@@ -43,13 +42,26 @@ def heatmap(val):
 # Load data from file
 genomes = []
 fidelities = []
+numSteps = 0
+maxTime = 0
 with open(sys.argv[1], "r") as f:
     for line in f:
         split = line.split()
-        genomes.append(split[0])
-        fidelities.append([])
-        for val in split[1:]:
-            fidelities[-1].append(float(val))
+
+        # First line should be the max time value
+        if maxTime == 0:
+            maxTime = float(split[0])
+
+        # Second line should be the number of steps in the dynamics
+        elif numSteps == 0:
+            numSteps = int(split[0])
+
+        # Then the rest should be genomes followed by dynamics data
+        else:
+            genomes.append(split[0])
+            fidelities.append([])
+            for val in split[1:]:
+                fidelities[-1].append(float(val))
 
 # Init image arrays
 networkImages = []
@@ -177,9 +189,11 @@ for index in range(0, len(genomes), skip):
     draw1.text((im1.size[0]/2-70,15), "generation " + str(index), font=fnt, fill=(0,0,0))
 
     # Draw a heatmap bar
-    for x in range(0, im1.size[0]):
-        col = heatmap(x/float(im1.size[0]))
-        draw1.line([x, im1.size[1], x, im1.size[1]-30], fill=col, width=1)
+    for x in range(100, im1.size[0]-100):
+        col = heatmap((x-100)/float(im1.size[0]-2*100))
+        draw1.line([x, im1.size[1]-10, x, im1.size[1]-40], fill=col, width=1)
+    draw1.text((20,im1.size[1]-45), "0% of\nmax", font=fnt, fill=(0,0,0))
+    draw1.text((im1.size[0]-80,im1.size[1]-45), "100% of\nmax", font=fnt, fill=(0,0,0))
 
     # Scale if too large
     if im1.size[0] > networkWidth:
@@ -188,12 +202,12 @@ for index in range(0, len(genomes), skip):
         im1 = im1.resize((int(networkWidth*(height/img1.size[1])), height))
 
     # Generate dynamics graph as in dynamics.py but with slight formatting tweaks
-    x = np.linspace(startTime, endTime, steps)
+    x = np.linspace(0, maxTime, numSteps)
     y = np.array(fidelities[index])
     fig = plt.figure(figsize=(10,7), dpi=80)
     ax1 = plt.subplot()
     plt.title("generation " + str(index), fontsize=20)
-    ax1.set_xlim([startTime, endTime])
+    ax1.set_xlim([0, maxTime])
     ax1.set_ylim([0.0, 1.0])
     plt.plot(x,y,color='black',lw=2)
     ax1.tick_params(axis='y', labelsize=20)

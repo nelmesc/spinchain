@@ -9,8 +9,6 @@ use constants
 
 ! Start with a completely custom network
 ! If this is set, most other topology/coupling settings are ignored
-! (A->E)AB500-CB500-CD500-DE500[1343/3143/5043/6843/8843]
-! (A->BCDEF)AB500-CA500-AD500-EA500-AF500[4640/1749/3014/6712/7648/4670]
 logical                               :: custom            = .false.
 integer,                    parameter :: max_string_size   = 1000
 integer                               :: coupling_digits   = 4
@@ -21,7 +19,7 @@ character(max_string_size)            :: custom_string     = &
 logical :: stop_after_time = .false.
 
 ! Should the program produce a data file for an animated figure
-logical :: create_animation = .true.
+logical :: create_animation = .false.
 
 !*Define chain topology*!:
 !* Check one *!

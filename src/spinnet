@@ -36,6 +36,7 @@ function outputHelp {
 	echo " "
 	echo "Optimisation Flags:"
 	echo " "
+	echo "  -a --anim               create animations of the results"
 	echo "  -e --energy             only change the on-site energies"
 	echo "  -n --negative           allow negative couplings"
 	echo "  -x --exponential        force the fitness to use exponential scaling"
@@ -73,12 +74,18 @@ function outputHelp {
 isGenetic=false
 nextIs=""
 stopAfter=false
+anim=false
 for var in "$@"
 do
     if [ "$var" = "-o" ] || [ "$var" = "--optimise" ] ;
 	then
 
 		isGenetic=true
+
+	elif [ "$var" = "-a" ] || [ "$var" = "--anim" ] ;
+	then
+
+		anim=true
 
 	elif [ "$var" = "-c" ] || [ "$var" = "--convert" ] ;
 	then
@@ -209,12 +216,19 @@ fi
 
 if [ "$isGenetic" = "true" ]
 then
+
 	python3 $parent_path/genetic.py genetic.out
-	python3 $parent_path/animate.py anim.data
 	mkdir -p output/plots
 	mv ./*.png ./output/plots 2> /dev/null
-	mv ./*.gif ./output/plots 2> /dev/null
 	isGenetic=false
+
+	if [ "$anim" = "true" ] ;
+	then
+		echo "Creating animation, should take around 30 seconds"
+		python3 $parent_path/animate.py anim.data
+		mv ./*.gif ./output/plots 2> /dev/null
+	fi
+
 fi
 
 #Create output directory
