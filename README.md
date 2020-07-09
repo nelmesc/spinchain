@@ -8,19 +8,23 @@ See https://github.com/estaremp/spinchain/wiki for more info on the original cod
 
 ## Compilation
 
-The program requires some MPI implementation, such as mpich, along with Python3, tk, matplotlib, numpy. On Debian based distributions:
+The program requires some MPI implementation, such as mpich, along with Python3, tk, matplotlib, PIL and numpy. 
+
+On Debian based distributions these can be easily installed using:
+
 ```bash
-sudo apt install mpich python3 python3-matplotlib python3-numpy python3-tk make
+sudo apt install mpich python3 python3-matplotlib python3-numpy python3-tk python3-pil make
 ```
 
 To compile this software use the make command in the directory containing the makefile, creating a "bin" folder containing binaries:
+
 ```bash
 make
 ```
 
 ## Usage
 
-To use the resulting software type the following command to view the command line help:
+For specific help with the resulting software type the following command to view the command line help:
 
 ```bash
 bin/spinnet --help
@@ -32,16 +36,16 @@ An example which opens the visualiser for a network, allowing interactive modifi
 bin/spinnet -v "<A|E>AB500BC500CD500DE500#0000"
 ```
 
-An example which uses the genetic algorithm to optimise the couplings for speed:
+An example which uses the genetic algorithm to optimise the couplings using the default settings, also generating an animation of the results:
 
 ```bash
-bin/spinnet -o "<A|E>AB500BC500CD500DE500#0000"
+bin/spinnet -o -a "<A|E>AB500BC500CD500DE500#0000"
 ```
 
-An example which just uses the original code to evaluate the network:
+An example which just uses the original code to evaluate the network, without optimising:
 
 ```bash
-bin/spinnet -o "<A|E>AB500BC500CD500DE500#0000"
+bin/spinnet "<A|E>AB500BC500CD500DE500#0000"
 ```
 
 Results are placed in a folder called "output-latest" as well as a backup folder labelled with the date/time of the run. The output includes graphs/data files depending on the run parameters, generally the main file needed is "genetic.out" which contains the fitness and evolution of the run.
