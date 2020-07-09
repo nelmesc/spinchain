@@ -4,6 +4,8 @@ This code solves the Schrodinger equation for a set of interacting two-level qua
 
 See https://github.com/estaremp/spinchain/wiki for more info on the original code.
 
+![Animation showcasing the method](https://github.com/lumorti/spinchain/raw/genetic/figures/combined.gif "Animation showcasing the method")
+
 ## Compilation
 
 The program requires some MPI implementation, such as mpich, along with Python3, tk, matplotlib, numpy. On Debian based distributions:
