@@ -27,12 +27,13 @@ function outputHelp {
 	echo " "
 	echo "Exclusive Flags:"
 	echo " "
-	echo "  -v --visualise         visualise the network instead of simulating"
-	echo "  -o --optimise          optimise the couplings using a GA"
-	echo "  -t --time              just output a time estimate for optimisation"
-	echo "  -s --scaling           generate some graphs showing the scaling"
-	echo "  -d --delete            delete all output folders in this directory"
-	echo "  -c --convert     [int] convert the string to a certain num of digits"
+	echo "  -v --visualise          visualise the network instead of simulating"
+	echo "  -o --optimise           optimise the couplings using a GA"
+	echo "  -t --time               just output a time estimate for optimisation"
+	echo "  -s --scaling            evaluate parallel scaling for a given network"
+	echo "  -S --sites              generate graphs showing scaling with num sites"
+	echo "  -d --delete             delete all output folders in this directory"
+	echo "  -c --convert     [int]  convert the string to a certain num of digits"
 	echo " "
 	echo "Optimisation Flags:"
 	echo " "
@@ -121,10 +122,8 @@ do
 		$parent_path/spinnet-vis "$@"
 		exit 1
 
-	elif [ "$var" = "-s" ] || [ "$var" = "--scaling" ] ;
+	elif [ "$var" = "-S" ] || [ "$var" = "--sites" ] ;
 	then
-
-		echo "this should only take about 5 minutes"
 
 		> scaling1Excite.dat
 		echo "running for 3 sites with 1 excitation"
@@ -168,22 +167,38 @@ do
 		echo "running for 8 sites with 3 excitations"
 		echo 8 $(source $0 -C 1 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling3Excite.dat
 
-		> scalingParallel.dat
-		echo "running for 8 sites with 3 excitations on 1 core"
-		initial=$(source $0 -C 1 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		python3 $parent_path/sites.py
+		rm scaling1Excite.dat scaling2Excite.dat scaling3Excite.dat 
+
+		exit 1
+
+	elif [ "$var" = "-s" ] || [ "$var" = "--scaling" ] ;
+	then
+
+		if [ "$2" = "" ] ;
+		then
+			echo "ERROR - please specify a network to test scaling on"
+			exit 1
+		fi
+
+		genome=$2
+
+	  	> scalingParallel.dat
+		echo "running on 1 core"
+		initial=$(source $0 -C 1 -t $genome)
 		echo 1 1 >> scalingParallel.dat
-		echo "running for 8 sites with 3 excitations on 2 cores"
-		new=$(source $0 -C 2 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo "running on 2 cores"
+		new=$(source $0 -C 2 -t $genome)
 		echo 2 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
-		echo "running for 8 sites with 3 excitations on 4 cores"
-		new=$(source $0 -C 4 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo "running on 4 cores"
+		new=$(source $0 -C 4 -t $genome)
 		echo 4 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
-		echo "running for 8 sites with 3 excitations on 8 cores"
-		new=$(source $0 -C 8 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500")
+		echo "running on 8 cores"
+		new=$(source $0 -C 8 -t $genome)
 		echo 8 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
 
 		python3 $parent_path/scaling.py
-		rm scalingParallel.dat scaling1Excite.dat scaling2Excite.dat scaling3Excite.dat 
+		rm scalingParallel.dat
 
 		exit 1
 

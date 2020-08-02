@@ -109,6 +109,9 @@ program wrapper
 
         else if (len_trim(args(i)) >= 5 .and. args(i)(1:1) /= "-" .and. .not. is_int(args(i))) then
 
+            ! Clear the string first, just in case
+            custom_string = ""
+
             ! Strip any spaces or newlines
             k = 1
             do j = 1, len_trim(args(i))
@@ -122,7 +125,9 @@ program wrapper
 
         else if (args(i) == "-C" .or. args(i) == "--cores") then
 
-        else if (args(i) == "-s" .or. args(i) == "--save") then
+        else if (args(i) == "-s" .or. args(i) == "--scaling") then
+
+        else if (args(i) == "-S" .or. args(i) == "--sites") then
 
         else if (args(i) == "-a" .or. args(i) == "--anim") then
 
@@ -147,7 +152,7 @@ program wrapper
     ! Figure out how many digits per coupling there are 
     coupling_digits = get_num_digits(custom_string)
 
-    ! If told to convert TODO 1
+    ! If told to convert 
     if (convertTo > 0) then
 
         print *, "converting to ", convertTo, " digits"

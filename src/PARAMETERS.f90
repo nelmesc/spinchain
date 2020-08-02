@@ -13,7 +13,7 @@ logical                               :: custom            = .false.
 integer,                    parameter :: max_string_size   = 1000
 integer                               :: coupling_digits   = 4
 character(max_string_size)            :: custom_string     = &
-  & "<A|C>AB500AC500#00"
+  & "<A|C>AB500BC500#00"
 
 ! If the program should give a time estimate and then stop
 logical :: stop_after_time = .false.

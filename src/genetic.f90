@@ -248,6 +248,7 @@ subroutine solve_genetic()
 
         ! Evaluate all of the genomes to get their fitnesses
         do j = array_start, array_end
+
             fitnesses(j) = genetic_fitness(population(j), best_fid, best_time, best_qual, numModes) 
         end do
 
