@@ -51,7 +51,7 @@ subroutine build_hamiltonian_custom(N, num_basis, Js2D, basis_vecs, H, eeScale)
                 ! Add each energy for that site
                 do k = 1, N
                     if (basis_vecs(i, k) == 1) then
-                        H(j, i) = H(j,i) + Js2D(k, k)
+                        H(j, i) = H(j, i) + Js2D(k, k)
                     end if
                 end do
 
@@ -59,7 +59,7 @@ subroutine build_hamiltonian_custom(N, num_basis, Js2D, basis_vecs, H, eeScale)
                 do k = 1, N
                     do l = 1, N
                         if (basis_vecs(i, k) == 1 .and. basis_vecs(i, l) == 1) then
-                            H(j, i) = H(j,i) + eeScale*Js2D(k, l)
+                            H(j, i) = H(j, i) + eeScale*Js2D(k, l)
                         end if
                     end do
                 end do

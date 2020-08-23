@@ -37,7 +37,16 @@ program wrapper
 
         else if (args(i) == "-f" .or. args(i) == "--fast") then
 
-            time_scale = time_scale * 100.0_dbl
+            time_scale = time_scale * 10000.0_dbl
+
+        else if (args(i) == "-e" .or. args(i) == "--eescale") then
+
+            if (.not. is_real(args(i+1))) then
+                print *, "ERROR - the argument following " //trim(args(i))// " should be a float"
+                stop
+            end if
+
+            eeScale = chars_to_real(args(i+1))
 
         else if (args(i) == "-n" .or. args(i) == "--negative") then
 
@@ -133,7 +142,7 @@ program wrapper
 
             create_animation = .true.
 
-        else if (.not. is_int(args(i))) then
+        else if (.not. is_int(args(i)) .and. .not. is_real(args(i))) then
 
             print *, "ERROR - unknown argument: ", trim(args(i))
             stop
@@ -286,6 +295,40 @@ contains
             ascii_val = ichar(a(i:i))
             if (ascii_val < 48 .or. ascii_val > 57) then
                 is_int = .false.
+                return
+            end if
+
+        end do
+
+    end function
+
+    ! See if a character string could be read as a real
+    function is_real(a)
+
+        logical :: is_real
+        character(*), intent(in) :: a
+        character(len(a)) :: a_copy
+        integer :: i, ascii_val
+
+        a_copy = ""
+
+        ! Copy most chars over to the copy of a 
+        do i = 1, len(a)
+
+            ! Don't copy ".", "-" or "+"
+            if (a(i:i) /= "." .and. a(i:i) /= "-" .and. a(i:i) /= "+") then
+                a_copy = trim(a_copy) // a(i:i)
+            end if
+
+        end do
+
+        is_real = .true.
+        do i = 1, len_trim(a_copy)
+
+            ! Make sure all of the ascii chars are digits
+            ascii_val = ichar(a_copy(i:i))
+            if (ascii_val < 48 .or. ascii_val > 57) then
+                is_real = .false.
                 return
             end if
 

@@ -30,9 +30,9 @@ ax1.set_xlim([1,generation[-1]])
 ax1.set_ylim([0,100])
 
 # Plot each line
-plt.plot(generation,worst,color='red', lw=2, label='worst')
-plt.plot(generation,average,color='orange', lw=2, label='average')
-plt.plot(generation,best,color='green', lw=2, label='best')
+plt.plot(generation, best, "-", color='green', lw=2, label='best')
+plt.plot(generation, average, "-", color='orange', lw=2, label='average')
+plt.plot(generation, worst, "-", color='red', lw=2, label='worst')
 
 # Set the size of the axis ticks
 ax1.tick_params(axis='y', labelsize=20)

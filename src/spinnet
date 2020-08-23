@@ -35,6 +35,9 @@ function outputHelp {
 	echo "  -d --delete             delete all output folders in this directory"
 	echo "  -c --convert     [int]  convert the string to a certain num of digits"
 	echo " "
+	echo "General Flags:"
+	echo "  -e --eescale   [float]  set the scale of the excite-excite term (def 0.1)"
+	echo " "
 	echo "Optimisation Flags:"
 	echo " "
 	echo "  -a --anim               create animations of the results"
@@ -181,21 +184,43 @@ do
 			exit 1
 		fi
 
-		genome=$2
+		> scalingParallel.dat
 
-	  	> scalingParallel.dat
-		echo "running on 1 core"
-		initial=$(source $0 -C 1 -t $genome)
-		echo 1 1 >> scalingParallel.dat
-		echo "running on 2 cores"
-		new=$(source $0 -C 2 -t $genome)
-		echo 2 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
-		echo "running on 4 cores"
-		new=$(source $0 -C 4 -t $genome)
-		echo 4 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
-		echo "running on 8 cores"
-		new=$(source $0 -C 8 -t $genome)
-		echo 8 $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
+		# TODO
+		shift
+		for arg in "$@"
+		do
+
+			genome=$arg
+			echo "for: $arg"
+
+			echo 1 1 >> scalingParallel.dat
+
+			echo "running on 1 core"
+			total=0
+			for i in 1 2 3 4 5
+			do
+				echo "repeat $i"
+				attempt=$(source $0 -C 1 -t $genome)
+				total=$(echo "scale=3;$total+$attempt" | bc)
+			done
+			initial=$(echo "scale=3;$total/5" | bc)
+
+			for c in 2 4 8
+			do
+				echo "running on $c cores"
+				total=0
+				for i in 1 2 3 4 5
+				do
+					echo "repeat $i"
+					attempt=$(source $0 -C $c -t $genome)
+					total=$(echo "scale=3;$total+$attempt" | bc)
+				done
+				new=$(echo "scale=3;$total/5" | bc)
+				echo $c $(echo "scale=3;$initial/$new" | bc) >> scalingParallel.dat
+			done
+
+		done
 
 		python3 $parent_path/scaling.py
 		rm scalingParallel.dat
@@ -249,100 +274,101 @@ fi
 #Create output directory
 mkdir -p output 
 
-if [ "$isGenetic" = "false" ]
-then
+if [ -f info.data ]; then
 
-	# Read info from the run
-	source 'info.data'
-
-	if [ $MAX_EOF = 'T' ] && [ $REALISATIONS -eq 1 ] ;
+	if [ "$isGenetic" = "false" ]
 	then
-		if [ $METHOD = 'DIAG' ] ;
+
+		# Read info from the run
+		source 'info.data'
+
+		if [ $MAX_EOF = 'T' ] && [ $REALISATIONS -eq 1 ] ;
 		then
-			python3 $parent_path/python_scripts/maxEOF.py eof.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
+			if [ $METHOD = 'DIAG' ] ;
+			then
+				python3 $parent_path/python_scripts/maxEOF.py eof.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
+			fi
 		fi
-	fi
 
-	# Realisations if noise
-	if [ $REALISATIONS -ne 1 ] ;
-	then
-		for j in `seq 1 1 $REALISATIONS`
-		do
-			echo 'Realisation num:' $j
+		# Realisations if noise
+		if [ $REALISATIONS -ne 1 ] ;
+		then
+			for j in `seq 1 1 $REALISATIONS`
+			do
+				echo 'Realisation num:' $j
 
-			# Run executable
-			$parent_path/run
+				# Run executable
+				$parent_path/run
 
-			cat eigenvalues.data >> eigenvalues_realisations.data
+				cat eigenvalues.data >> eigenvalues_realisations.data
+
+				if [ $SINGLE = 'T' ] ;
+				then
+					cat eof.data >> eof_realisations_SP.data
+				elif [ $MAX_EOF = 'T' ] ;
+				then
+					cat eof.data >> eof_realisations_FD.data
+				fi
+			done
+
+			python3 $parent_path/averageEigenvalues.py eigenvalues_realisations.data $VECTORS $REALISATIONS
 
 			if [ $SINGLE = 'T' ] ;
 			then
-				cat eof.data >> eof_realisations_SP.data
+				python3 $parent_path/averageEOF.py eof_realisations_SP.data $TA $OFFNOISE $DIAGNOISE
 			elif [ $MAX_EOF = 'T' ] ;
 			then
-				cat eof.data >> eof_realisations_FD.data
+				python3 $parent_path/maxEOF.py eof_realisations_FD.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
 			fi
-		done
 
-		python3 $parent_path/averageEigenvalues.py eigenvalues_realisations.data $VECTORS $REALISATIONS
-
-		if [ $SINGLE = 'T' ] ;
-		then
-			python3 $parent_path/averageEOF.py eof_realisations_SP.data $TA $OFFNOISE $DIAGNOISE
-		elif [ $MAX_EOF = 'T' ] ;
-		then
-			python3 $parent_path/maxEOF.py eof_realisations_FD.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
-		fi
-
-		if [ $GRAPHICAL = 'T' ] ;
-		then
-			#Plot averaged
-			python3 $parent_path/averagedEigenvalues.py $VECTORS
-		fi
-
-		#If plots have been created move them to the required folder
-		mkdir -p output/plots
-		mv ./*.png ./output/plots
-
-	fi
-
-	#Graphical outputs (not done if single time realisations or integration method)
-	if [ $GRAPHICAL = 'T' ] && [ $SINGLE = 'F' ] ;
-	then
-
-		#echo ' >> Plot'
-
-		if [ $METHOD = 'DIAG' ] ;
-		then
-
-			python3 $parent_path/probabilities.py $VECTORS
-			python3 $parent_path/eigenvalues.py $VECTORS
-
-			if [ $EOF = 'T' ] ;
+			if [ $GRAPHICAL = 'T' ] ;
 			then
-				python3 $parent_path/eof.py $TOTALTIME $INITIALVEC
+				#Plot averaged
+				python3 $parent_path/averagedEigenvalues.py $VECTORS
 			fi
+
+			#If plots have been created move them to the required folder
+			mkdir -p output/plots
+			mv ./*.png ./output/plots
 
 		fi
 
-		python3 $parent_path/dynamics.py $TOTALTIME $INITIALVEC $N
-		python3 $parent_path/exmap.py $TOTALTIME
+		#Graphical outputs (not done if single time realisations or integration method)
+		if [ $GRAPHICAL = 'T' ] && [ $SINGLE = 'F' ] ;
+		then
 
-		#If plots have been created move them to the required folder
-		mkdir -p output/plots
-		mv ./*.png ./output/plots 2> /dev/null
+			#echo ' >> Plot'
+
+			if [ $METHOD = 'DIAG' ] ;
+			then
+
+				python3 $parent_path/probabilities.py $VECTORS
+				python3 $parent_path/eigenvalues.py $VECTORS
+
+				if [ $EOF = 'T' ] ;
+				then
+					python3 $parent_path/eof.py $TOTALTIME $INITIALVEC
+				fi
+
+			fi
+
+			python3 $parent_path/dynamics.py $TOTALTIME $INITIALVEC $N
+			python3 $parent_path/exmap.py $TOTALTIME
+
+			#If plots have been created move them to the required folder
+			mkdir -p output/plots
+			mv ./*.png ./output/plots 2> /dev/null
+
+		fi
 
 	fi
+
+	# Rename the output directory with the date and time
+	mv ./*.out ./output 2> /dev/null
+	mkdir -p ./output/data
+	mv ./*.data ./output/data 2> /dev/null
+	rm -f -r ./output-latest
+	cp -r output ./output-latest
+	mv output ./output-$(date -u +"%F-%H-%M")
 
 fi
-
-# Rename the output directory with the date and time
-mv ./*.out ./output 2> /dev/null
-mkdir -p ./output/data
-mv ./*.data ./output/data 2> /dev/null
-rm -f -r ./output-latest
-cp -r output ./output-latest
-mv output ./output-$(date -u +"%F-%H-%M")
-
-
-

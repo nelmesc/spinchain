@@ -132,7 +132,7 @@ real(kind=dbl), parameter :: J_max = 1.0    !Maximum coupling in the middle
 real(kind=dbl), parameter :: J_strong = 1.0 !Strong versus weak coupling for
 real(kind=dbl), parameter :: J_weak = 0.1   !SSH-like schemes.
 
-real(kind=dbl), parameter :: eeScale = 0.1 !Scaling factor for excite-excite interaction
+real(kind=dbl) :: eeScale = 0.1 !Scaling factor for excite-excite interaction
 
 !************************************
 !!Disorder and tolerance parameters *
