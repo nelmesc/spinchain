@@ -31,13 +31,13 @@ ax1.tick_params(axis='y', pad=10, labelsize=20)
 ax1.tick_params(axis='x', pad=10, labelsize=20)
 
 # Set the names of the axis labels
-plt.xlabel("\\alpha", fontsize=20, color='black')
+plt.xlabel(r'$\alpha$', fontsize=20, color='black')
 plt.ylabel("maximum fidelity %", fontsize=20, color='black')
-ax1.set_xlabel("\\alpha", labelpad=10)
+ax1.set_xlabel(r"$\alpha$", labelpad=10)
 ax1.set_ylabel("maximum fidelity %", labelpad=20)
 
 # Add the legend
-l=legend(loc='lower right', ncol=1, fontsize=20)
+# l=legend(loc='lower right', ncol=1, fontsize=20)
 
 # Nicer spacing
 plt.tight_layout()

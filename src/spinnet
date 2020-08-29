@@ -134,7 +134,18 @@ do
 		fi
 
 		> eetest.dat
-		for ee in $(seq 0.0 0.001 0.2)
+
+		for ee in $(seq 0.0 0.01 0.135)
+		do
+			source $0 -e $ee $2
+			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			fitness="${fitness:1}"
+			echo "ran for alpha = $ee, got $fitness"
+			echo $ee $fitness >> eetest.dat
+
+		done
+
+		for ee in $(seq 0.135 0.001 0.145)
 		do
 			source $0 -e $ee $2
 			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
@@ -142,6 +153,24 @@ do
 			echo "ran for alpha = $ee, got $fitness"
 			echo $ee $fitness >> eetest.dat
 		done
+
+		for ee in $(seq 0.145 0.01 0.25)
+		do
+			source $0 -e $ee $2
+			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			fitness="${fitness:1}"
+			echo "ran for alpha = $ee, got $fitness"
+			echo $ee $fitness >> eetest.dat
+		done
+
+		#for ee in $(seq 0.0 0.03 2.5)
+		#do
+			#source $0 -e $ee $2
+			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			#fitness="${fitness:1}"
+			#echo "ran for alpha = $ee, got $fitness"
+			#echo $ee $fitness >> eetest.dat
+		#done
 
 		python3 $parent_path/alpha.py
 		rm eetest.dat 
