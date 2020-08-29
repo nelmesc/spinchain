@@ -138,6 +138,8 @@ program wrapper
 
         else if (args(i) == "-S" .or. args(i) == "--sites") then
 
+        else if (args(i) == "-E" .or. args(i) == "--eetest") then
+
         else if (args(i) == "-a" .or. args(i) == "--anim") then
 
             create_animation = .true.

@@ -40,6 +40,10 @@ subroutine solve_genetic()
     real (kind=dbl) :: bestFit
     real (kind=dbl), dimension(steps) :: bestDynams
 
+    ! For keeping track of the best genomes throughout in case an earlier is the best
+    real (kind=dbl) :: bestFitThisGen, bestFitOverall
+    character(max_string_size) :: bestGenomeThisGen, bestGenomeOverall
+
     ! Unit and file to write to
     integer, parameter :: geneticFile = 35, animationFile = 36
 
@@ -269,6 +273,15 @@ subroutine solve_genetic()
             ! Output info about the current genome
             if (.not. stop_after_time) then
 
+                ! Get the best fitness and update if the best overall 
+                bestIndex = maxloc(fitnesses, 1)
+                bestFitThisGen = fitnesses(bestIndex)
+                bestGenomeThisGen = population(bestIndex)
+                if (bestFitThisGen > bestFitOverall) then
+                    bestFitOverall = bestFitThisGen
+                    bestGenomeOverall = bestGenomeThisGen
+                end if
+
                 ! Genetic output
                 write(geneticFile, "(A,I4,A,f6.2,A,f6.2,A,f6.2,A,f8.1,A,I6,A)") "|    ", &
                         & i, "    | ", minval(fitnesses), " | ", &
@@ -278,7 +291,6 @@ subroutine solve_genetic()
                 ! Output for animation 
                 if (create_animation) then
                     
-                    bestIndex = maxloc(fitnesses, 1)
                     bestFit = genetic_fitness(population(bestIndex), best_fid, best_time, best_qual, numModes, bestDynams)
                     write(animationFile, "(A,A,100(f10.5))") trim(population(bestIndex)), trim(pos_direct), bestDynams
 
@@ -314,6 +326,7 @@ subroutine solve_genetic()
 
         end if
 
+        ! If told to stop early
         if (i == 1 .and. stop_after_time) then
 
             ! Stop the parallelisation
@@ -399,12 +412,20 @@ subroutine solve_genetic()
         write(geneticFile, "(A)") "|------------------------------------------------------|"
         write(geneticFile, "(A)") ""
 
+        ! Get the best fitness and update if the best overall 
+        bestIndex = maxloc(fitnesses, 1)
+        bestFitThisGen = fitnesses(bestIndex)
+        bestGenomeThisGen = population(bestIndex)
+        if (bestFitThisGen > bestFitOverall) then
+            bestFitOverall = bestFitThisGen
+            bestGenomeOverall = bestGenomeThisGen
+        end if
+
         ! Output the final result
-        i = maxloc(fitnesses(:), 1)
-        fitnesses(i) = genetic_fitness(population(i), best_fid, best_time, best_qual, numModes)
+        bestFitOverall = genetic_fitness(bestGenomeOverall, best_fid, best_time, best_qual, numModes)
         write(geneticFile, "(A,A)") "best genome: ", &
-                 & '"' // trim(init_direct) // trim(population(i)) // trim(pos_direct) // '"'
-        write(geneticFile, "(A,f0.2,A)", advance="no") "with fitness: ", fitnesses(i), " ("
+                 & '"' // trim(init_direct) // trim(bestGenomeOverall) // trim(pos_direct) // '"'
+        write(geneticFile, "(A,f0.2,A)", advance="no") "with fitness: ", bestFitOverall, " ("
         do j = 1, numModes
             write(geneticFile, "(f0.2,A,f0.2,A,f0.2)", advance="no") best_fid(j)*100.0_dbl, "% fidelity ", &
                 & best_qual(j)*100.0_dbl, "% quality at time ", best_time(j)

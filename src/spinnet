@@ -17,20 +17,19 @@ function outputHelp {
 	echo "|   Developed by Marta Estarellas and Luke Mortimer   |"
 	echo "|              University of York, 2019               |"
 	echo "-------------------------------------------------------"
-	echo "| Non-genetic: https://github.com/estaremp/spinchain  |"
+	echo "| Original:    https://github.com/estaremp/spinchain  |"
 	echo "| Genetic:     https://github.com/Lumorti/spinchain   |"
 	echo "-------------------------------------------------------"
 	echo " "
 	echo "Usage:"
-	echo " "
 	echo "  spinnet [flags?] [network string] [flags?]"
 	echo " "
 	echo "Exclusive Flags:"
-	echo " "
 	echo "  -v --visualise          visualise the network instead of simulating"
 	echo "  -o --optimise           optimise the couplings using a GA"
 	echo "  -t --time               just output a time estimate for optimisation"
 	echo "  -s --scaling            evaluate parallel scaling for a given network"
+	echo "  -E --eetest             evaluate a network for nearby eescale values"
 	echo "  -S --sites              generate graphs showing scaling with num sites"
 	echo "  -d --delete             delete all output folders in this directory"
 	echo "  -c --convert     [int]  convert the string to a certain num of digits"
@@ -39,7 +38,6 @@ function outputHelp {
 	echo "  -e --eescale   [float]  set the scale of the excite-excite term (def 0.1)"
 	echo " "
 	echo "Optimisation Flags:"
-	echo " "
 	echo "  -a --anim               create animations of the results"
 	echo "  -e --energy             only change the on-site energies"
 	echo "  -n --negative           allow negative couplings"
@@ -53,7 +51,6 @@ function outputHelp {
 	echo "  -C --cores       [int]  specify the number of cores to use   (max $numproc)"
 	echo " "
 	echo "Network strings:"
-	echo " "
 	echo "  e.g. \"<A|E>AB500BC500CD500DE500#0000\""
 	echo " "
 	echo "  This represents a linear chain with uniform couplings going from A->B->C->D->E."
@@ -125,6 +122,32 @@ do
 		$parent_path/spinnet-vis "$@"
 		exit 1
 
+	elif [ "$var" = "-E" ] || [ "$var" = "--eetest" ] ;
+	then
+
+		# TODO
+
+		if [ "$2" = "" ] ;
+		then
+			echo "ERROR - please specify a network to test scaling on"
+			exit 1
+		fi
+
+		> eetest.dat
+		for ee in $(seq 0.0 0.001 0.2)
+		do
+			source $0 -e $ee $2
+			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			fitness="${fitness:1}"
+			echo "ran for alpha = $ee, got $fitness"
+			echo $ee $fitness >> eetest.dat
+		done
+
+		python3 $parent_path/alpha.py
+		rm eetest.dat 
+
+		exit 1
+
 	elif [ "$var" = "-S" ] || [ "$var" = "--sites" ] ;
 	then
 
@@ -186,7 +209,6 @@ do
 
 		> scalingParallel.dat
 
-		# TODO
 		shift
 		for arg in "$@"
 		do
@@ -369,6 +391,6 @@ if [ -f info.data ]; then
 	mv ./*.data ./output/data 2> /dev/null
 	rm -f -r ./output-latest
 	cp -r output ./output-latest
-	mv output ./output-$(date -u +"%F-%H-%M")
+	mv output ./output-$(date -u +"%F-%H-%M") 2> /dev/null
 
 fi
