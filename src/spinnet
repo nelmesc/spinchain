@@ -28,6 +28,7 @@ function outputHelp {
 	echo "  -v --visualise          visualise the network instead of simulating"
 	echo "  -o --optimise           optimise the couplings using a GA"
 	echo "  -t --time               just output a time estimate for optimisation"
+	echo "  -T --timefull           just output the time taken after optimising"
 	echo "  -s --scaling            evaluate parallel scaling for a given network"
 	echo "  -E --eetest             evaluate a network for nearby eescale values"
 	echo "  -S --sites              generate graphs showing scaling with num sites"
@@ -38,16 +39,17 @@ function outputHelp {
 	echo "  -e --eescale   [float]  set the scale of the excite-excite term (def 0.1)"
 	echo " "
 	echo "Optimisation Flags:"
-	echo "  -a --anim               create animations of the results"
-	echo "  -e --energy             only change the on-site energies"
-	echo "  -n --negative           allow negative couplings"
-	echo "  -x --exponential        force the fitness to use exponential scaling"
-	echo "  -l --linear             force the fitness to use linear scaling"
-	echo "  -f --fast               focus the optimisation more on speed"
 	echo "  -g --genomes     [int]  specify the number of genomes        (def 1024)  "
 	echo "  -G --generations [int]  specify the number of generations    (def 200)"
 	echo "  -m --mutate      [int]  specify the initial mutation amount  (def 20% max)"
 	echo "  -M --mutate-end  [int]  specify the final mutation amount    (def 1)"
+	echo "  -f --fast               focus the optimisation more on speed"
+	echo "  -F --fidelity    [int]  stop early once this fidelity is reached"
+	echo "  -a --anim               create animations of the optimisation"
+	echo "  -e --energy             only change the on-site energies"
+	echo "  -n --negative           allow negative couplings"
+	echo "  -x --exponential        force the fitness to use exponential scaling"
+	echo "  -l --linear             force the fitness to use linear scaling"
 	echo "  -C --cores       [int]  specify the number of cores to use   (max $numproc)"
 	echo " "
 	echo "Network strings:"
@@ -99,6 +101,12 @@ do
 		stopAfter=true
 		isGenetic=true
 
+	elif [ "$var" = "-T" ] || [ "$var" = "--timefull" ] ;
+	then
+
+		stopAfter=true
+		isGenetic=true
+
 	elif [ "$nextIs" = "cores" ] ;
 	then
 
@@ -135,35 +143,17 @@ do
 
 		> eetest.dat
 
-		for ee in $(seq 0.0 0.01 0.135)
-		do
-			source $0 -e $ee $2
-			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
-			fitness="${fitness:1}"
-			echo "ran for alpha = $ee, got $fitness"
-			echo $ee $fitness >> eetest.dat
+		#for ee in $(seq 0.0 0.01 0.135)
+		#do
+			#source $0 -e $ee $2
+			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			#fitness="${fitness:1}"
+			#echo "ran for alpha = $ee, got $fitness"
+			#echo $ee $fitness >> eetest.dat
 
-		done
+		#done
 
-		for ee in $(seq 0.135 0.001 0.145)
-		do
-			source $0 -e $ee $2
-			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
-			fitness="${fitness:1}"
-			echo "ran for alpha = $ee, got $fitness"
-			echo $ee $fitness >> eetest.dat
-		done
-
-		for ee in $(seq 0.145 0.01 0.25)
-		do
-			source $0 -e $ee $2
-			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
-			fitness="${fitness:1}"
-			echo "ran for alpha = $ee, got $fitness"
-			echo $ee $fitness >> eetest.dat
-		done
-
-		#for ee in $(seq 0.0 0.03 2.5)
+		#for ee in $(seq 0.135 0.001 0.145)
 		#do
 			#source $0 -e $ee $2
 			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
@@ -171,6 +161,24 @@ do
 			#echo "ran for alpha = $ee, got $fitness"
 			#echo $ee $fitness >> eetest.dat
 		#done
+
+		#for ee in $(seq 0.145 0.01 0.25)
+		#do
+			#source $0 -e $ee $2
+			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			#fitness="${fitness:1}"
+			#echo "ran for alpha = $ee, got $fitness"
+			#echo $ee $fitness >> eetest.dat
+		#done
+
+		for ee in $(seq 0.0 0.03 1.0)
+		do
+			source $0 -e $ee $2
+			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
+			fitness="${fitness:1}"
+			echo "ran for alpha = $ee, got $fitness"
+			echo $ee $fitness >> eetest.dat
+		done
 
 		python3 $parent_path/alpha.py
 		rm eetest.dat 
@@ -180,50 +188,59 @@ do
 	elif [ "$var" = "-S" ] || [ "$var" = "--sites" ] ;
 	then
 
+		chr() {
+		  [ "$1" -lt 256 ] || return 1
+		  printf "\\$(printf '%03o' "$1")"
+		}
+
+		# Clear the files
 		> scaling1Excite.dat
-		echo "running for 3 sites with 1 excitation"
-		echo 3 $(source $0 -C 1 -t "<A|C>AB500BC500") >> scaling1Excite.dat
-		echo "running for 4 sites with 1 excitation"
-		echo 4 $(source $0 -C 1 -t "<A|D>AB500BC500CD500") >> scaling1Excite.dat
-		echo "running for 5 sites with 1 excitation"
-		echo 5 $(source $0 -C 1 -t "<A|E>AB500BC500CD500DE500") >> scaling1Excite.dat
-		echo "running for 6 sites with 1 excitation"
-		echo 6 $(source $0 -C 1 -t "<A|F>AB500BC500CD500DE500EF500") >> scaling1Excite.dat
-		echo "running for 7 sites with 1 excitation"
-		echo 7 $(source $0 -C 1 -t "<A|G>AB500BC500CD500DE500EF500FG500") >> scaling1Excite.dat
-		echo "running for 8 sites with 1 excitation"
-		echo 8 $(source $0 -C 1 -t "<A|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling1Excite.dat
-
 		> scaling2Excite.dat
-		echo "running for 3 sites with 2 excitations"
-		echo 3 $(source $0 -C 1 -t "<AB|C>AB500BC500") >> scaling2Excite.dat
-		echo "running for 4 sites with 2 excitations"
-		echo 4 $(source $0 -C 1 -t "<AB|D>AB500BC500CD500") >> scaling2Excite.dat
-		echo "running for 5 sites with 2 excitations"
-		echo 5 $(source $0 -C 1 -t "<AB|E>AB500BC500CD500DE500") >> scaling2Excite.dat
-		echo "running for 6 sites with 2 excitations"
-		echo 6 $(source $0 -C 1 -t "<AB|F>AB500BC500CD500DE500EF500") >> scaling2Excite.dat
-		echo "running for 7 sites with 2 excitations"
-		echo 7 $(source $0 -C 1 -t "<AB|G>AB500BC500CD500DE500EF500FG500") >> scaling2Excite.dat
-		echo "running for 8 sites with 2 excitations"
-		echo 8 $(source $0 -C 1 -t "<AB|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling2Excite.dat
 
-		> scaling3Excite.dat
-		echo "running for 3 sites with 3 excitations"
-		echo 3 $(source $0 -C 1 -t "<ABC|C>AB500BC500") >> scaling3Excite.dat
-		echo "running for 4 sites with 3 excitations"
-		echo 4 $(source $0 -C 1 -t "<ABC|D>AB500BC500CD500") >> scaling3Excite.dat
-		echo "running for 5 sites with 3 excitations"
-		echo 5 $(source $0 -C 1 -t "<ABC|E>AB500BC500CD500DE500") >> scaling3Excite.dat
-		echo "running for 6 sites with 3 excitations"
-		echo 6 $(source $0 -C 1 -t "<ABC|F>AB500BC500CD500DE500EF500") >> scaling3Excite.dat
-		echo "running for 7 sites with 3 excitations"
-		echo 7 $(source $0 -C 1 -t "<ABC|G>AB500BC500CD500DE500EF500FG500") >> scaling3Excite.dat
-		echo "running for 8 sites with 3 excitations"
-		echo 8 $(source $0 -C 1 -t "<ABC|H>AB500BC500CD500DE500EF500FG500GH500") >> scaling3Excite.dat
+		for sites in $(seq 1 10)
+		do
 
+			startVal=65
+			endVal=$(echo "$startVal+$sites" | bc)
+			endValPen=$(echo "$startVal+$sites-1" | bc)
+			middleVal=$(echo "scale=0;($startVal+$endVal)/2" | bc)
+
+			bulk=""
+			for i in $(seq $startVal $endVal)
+			do
+				j=$(echo "$i+1" | bc)
+				bulk="$bulk$(chr $i)$(chr $j)500"
+			done
+			
+			echo "running for $sites sites with 1 excitation"
+			braket="<A|$(chr $endValPen)>"
+			total=0
+			for i in 1 2 3 
+			do
+				attempt=$(source $0 -C 1 -T -F 95 -g 4000 -G 10000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total=$(echo "scale=3;$total+$attempt" | bc)
+			done
+			new=$(echo "scale=3;$total/3" | bc)
+			echo $sites $new >> scaling1Excite.dat
+
+			echo "running for $sites sites with 2 excitation"
+			braket="<$(chr $startVal)$(chr $endVal)|$(chr $startVal)$(chr $endVal)>"
+			total=0
+			for i in 1 2 3 
+			do
+				attempt=$(source $0 -C 1 -T -F 95 -g 4000 -G 10000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total=$(echo "scale=3;$total+$attempt" | bc)
+			done
+			new=$(echo "scale=3;$total/3" | bc)
+			echo $sites $new >> scaling2Excite.dat
+
+		done
+
+		# Run the matplotlib script and then delete the files
 		python3 $parent_path/sites.py
-		rm scaling1Excite.dat scaling2Excite.dat scaling3Excite.dat 
+		rm scaling1Excite.dat scaling2Excite.dat 
 
 		exit 1
 

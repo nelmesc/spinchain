@@ -17,6 +17,7 @@ character(max_string_size)            :: custom_string     = &
 
 ! If the program should give a time estimate and then stop
 logical :: stop_after_time = .false.
+logical :: stop_after_time_full = .false.
 
 ! Should the program produce a data file for an animated figure
 logical :: create_animation = .false.
@@ -67,7 +68,7 @@ logical                   :: use_genetic              = .false.
 ! Number of networks being tested each generation
 integer                   :: genomes_per_generation   = 1024
 integer                   :: max_generations          = 200
-real(kind=dbl), parameter :: stop_after_fit           = 100
+real(kind=dbl)            :: stop_after_fit           = 100000
 
 ! Mutation parameters, increasing these increases search space
 integer                   :: num_initial_mutations    = 50

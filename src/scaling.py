@@ -58,6 +58,7 @@ ax1.tick_params(axis='x', labelsize=20)
 # Set the names of the axis labels
 plt.xlabel('cores used', fontsize=20, color='black')
 plt.ylabel('speedup', fontsize=20, color='black')
+plt.grid(True)
 ax1.set_xlabel("cores used", labelpad=10)
 ax1.set_ylabel("speedup", labelpad=20)
 

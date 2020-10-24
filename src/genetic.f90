@@ -81,7 +81,7 @@ subroutine solve_genetic()
     ! Hold the change in mutate rate as a real
     real(kind=dbl)  :: mutate_amount_real, mutate_delta
 
-    if (.not. stop_after_time) then
+    if (.not. (stop_after_time .or. stop_after_time_full)) then
 
         ! Open the output file
         open(unit=geneticFile, file="genetic.out")
@@ -151,7 +151,7 @@ subroutine solve_genetic()
     ! Only do outputs if on the root node
     if (on_root_node) then
 
-        if (.not. stop_after_time) then
+        if (.not. (stop_after_time .or. stop_after_time_full)) then
 
             ! Initial output
             if (use_genetic) write(6, "(A)") "Running first generation for a time estimate"
@@ -271,7 +271,7 @@ subroutine solve_genetic()
             call cpu_time(current_time)
 
             ! Output info about the current genome
-            if (.not. stop_after_time) then
+            if (.not. (stop_after_time .or. stop_after_time_full)) then
 
                 ! Get the best fitness and update if the best overall 
                 bestIndex = maxloc(fitnesses, 1)
@@ -314,7 +314,7 @@ subroutine solve_genetic()
                     ! Stop the program
                     stop 
 
-                else
+                else if (.not. stop_after_time_full) then
                     write(6, "(A,A,A,A,A)") "Should be finished in ", &
                         & trim(seconds_to_human(timeRequired)), " (at ", trim(finish_time(timeRequired)), ")"
                 end if
@@ -322,7 +322,9 @@ subroutine solve_genetic()
             end if
 
             ! Ensure the file is written as it goes
-            flush(geneticFile)
+            if (.not. (stop_after_time .or. stop_after_time_full)) then
+                flush(geneticFile)
+            end if
 
         end if
 
@@ -339,7 +341,7 @@ subroutine solve_genetic()
 
         ! If the maximum fitness goes above a certain value, stop (can be set > 100 to never)
         if (maxval(fitnesses) > stop_after_fit) then
-            if (on_root_node) then
+            if (on_root_node .and. .not. (stop_after_time_full .or. stop_after_time)) then
                 write(6, "(A)") ""
                 write(6, "(A,f0.1,A)") "Stopping early since required fitness reached (", stop_after_fit, ")"
             end if
@@ -394,6 +396,19 @@ subroutine solve_genetic()
 
         ! Get the change in time
         call cpu_time(current_time)
+
+        ! If requested, output the time taken and stop
+        if (stop_after_time_full) then
+
+            write(6, "(f7.3)") current_time-start_time
+
+            ! Stop the parallelisation
+            call MPI_FINALIZE(mpi_error)
+
+            ! Stop the program
+            stop 
+
+        end if
 
         ! Sum the fitnesses
         fitness_sum = sum(fitnesses)

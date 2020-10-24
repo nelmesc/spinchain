@@ -19,7 +19,7 @@ with open("eetest.dat", "r") as f:
     for line in f:
         split = line.split()
         alphas.append(float(split[0]))
-        fidsBefore.append(float(split[1][:-1]))
+        fidsBefore.append(float(split[1][:-1]) / 100.0)
         # fidsAfter.append(float(split[2][:-1]))
 
 # Plot each line
@@ -32,9 +32,9 @@ ax1.tick_params(axis='x', pad=10, labelsize=20)
 
 # Set the names of the axis labels
 plt.xlabel(r'$\alpha$', fontsize=20, color='black')
-plt.ylabel("maximum fidelity %", fontsize=20, color='black')
+plt.ylabel(r"$F(t_f)$", fontsize=20, color='black')
 ax1.set_xlabel(r"$\alpha$", labelpad=10)
-ax1.set_ylabel("maximum fidelity %", labelpad=20)
+ax1.set_ylabel(r"$F(t_f)$", labelpad=20)
 
 # Add the legend
 # l=legend(loc='lower right', ncol=1, fontsize=20)

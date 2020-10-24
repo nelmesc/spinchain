@@ -52,6 +52,15 @@ program wrapper
 
             allow_negative = .true.
 
+        else if (args(i) == "-F" .or. args(i) == "--fidelity") then
+
+            if (.not. is_int(args(i+1))) then
+                print *, "ERROR - the argument following " //trim(args(i))// " should be an integer"
+                stop
+            end if
+
+            stop_after_fit = chars_to_int(args(i+1))
+
         else if (args(i) == "-g" .or. args(i) == "--genomes") then
 
             if (.not. is_int(args(i+1))) then
@@ -69,6 +78,11 @@ program wrapper
             end if
 
             max_generations = chars_to_int(args(i+1))
+
+        else if (args(i) == "-T" .or. args(i) == "--timefull") then
+
+            stop_after_time_full = .true.
+            use_genetic = .true.
 
         else if (args(i) == "-t" .or. args(i) == "--time") then
 
