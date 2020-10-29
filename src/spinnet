@@ -31,12 +31,13 @@ function outputHelp {
 	echo "  -T --timefull           just output the time taken after optimising"
 	echo "  -s --scaling            evaluate parallel scaling for a given network"
 	echo "  -E --eetest             evaluate a network for nearby eescale values"
-	echo "  -S --sites              generate graphs showing scaling with num sites"
+	echo "  -S --sites              generate scaling graph up to num of sites (def 20)"
 	echo "  -d --delete             delete all output folders in this directory"
 	echo "  -c --convert     [int]  convert the string to a certain num of digits"
 	echo " "
 	echo "General Flags:"
 	echo "  -e --eescale   [float]  set the scale of the excite-excite term (def 0.1)"
+	echo "  -w --window    [float]  set the size of the time window to evaluate (def 20)" 
 	echo " "
 	echo "Optimisation Flags:"
 	echo "  -g --genomes     [int]  specify the number of genomes        (def 1024)  "
@@ -171,16 +172,17 @@ do
 
 		# Clear the files
 		> scaling1Excite.dat
-		> scaling2Excite.dat
+		#> scaling2Excite.dat
 
-		# TODO
+		maxVal=20
 
-		for sites in $(seq 1 20)
+		for sites in $(seq 6 $maxVal)
 		do
 
 			startVal=65
 			endVal=$(echo "$startVal+$sites" | bc)
-			endValPen=$(echo "$startVal+$sites-1" | bc)
+			endValPlus=$(echo "$startVal+$sites+1" | bc)
+			startValPlus=$(echo "$startVal+1" | bc)
 			middleVal=$(echo "scale=0;($startVal+$endVal)/2" | bc)
 
 			bulk=""
@@ -191,34 +193,38 @@ do
 			done
 			
 			echo "running for $sites sites with 1 excitation"
-			braket="<A|$(chr $endValPen)>"
+			braket="<A|$(chr $endValPlus)>"
+			echo \"$braket$bulk\"
 			total=0
-			for i in 1 2 3 
+			repeats=10
+			for i in $(seq 1 $repeats)
 			do
-				attempt=$(source $0 -T -F 95 -G 400 "${braket}${bulk}")
+				attempt=$(source $0 -T -F 99 -w 30 -m 500 -M 500 -g 256 -G 400 "${braket}${bulk}")
 				echo " - repeat $i took $attempt seconds"
 				total=$(echo "scale=3;$total+$attempt" | bc)
 			done
-			new=$(echo "scale=3;$total/3" | bc)
+			new=$(echo "scale=3;$total/$repeats" | bc)
 			echo $sites $new >> scaling1Excite.dat
 
-			echo "running for $sites sites with 2 excitation"
-			braket="<$(chr $startVal)$(chr $endVal)|$(chr $startVal)$(chr $endVal)>"
-			total=0
-			for i in 1 2 3 
-			do
-				attempt=$(source $0 -T -F 95 -G 400 "${braket}${bulk}")
-				echo " - repeat $i took $attempt seconds"
-				total=$(echo "scale=3;$total+$attempt" | bc)
-			done
-			new=$(echo "scale=3;$total/3" | bc)
-			echo $sites $new >> scaling2Excite.dat
+			#echo "running for $sites sites with 2 excitation"
+			#braket="<$(chr $startVal)$(chr $startValPlus)|$(chr $endVal)$(chr $endValPlus)>"
+			#echo \"$braket$bulk\"
+			#total=0
+			#for i in 1 2 3 
+			#do
+				#attempt=$(source $0 -T -F 95 -G 4000 "${braket}${bulk}")
+				#echo " - repeat $i took $attempt seconds"
+				#total=$(echo "scale=3;$total+$attempt" | bc)
+			#done
+			#new=$(echo "scale=3;$total/3" | bc)
+			#echo $sites $new >> scaling2Excite.dat
 
 		done
 
 		# Run the matplotlib script and then delete the files
 		python3 $parent_path/sites.py
-		#rm scaling1Excite.dat scaling2Excite.dat 
+		rm scaling1Excite.dat 
+		#rm scaling2Excite.dat 
 
 		exit 1
 

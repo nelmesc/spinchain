@@ -39,6 +39,15 @@ program wrapper
 
             time_scale = time_scale * 10000.0_dbl
 
+        else if (args(i) == "-w" .or. args(i) == "--window") then
+
+            if (.not. is_real(args(i+1))) then
+                print *, "ERROR - the argument following " //trim(args(i))// " should be a float"
+                stop
+            end if
+
+            totalTime = chars_to_real(args(i+1))
+
         else if (args(i) == "-e" .or. args(i) == "--eescale") then
 
             if (.not. is_real(args(i+1))) then

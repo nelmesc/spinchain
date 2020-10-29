@@ -21,14 +21,14 @@ with open("scaling1Excite.dat", "r") as f:
         split = line.split()
         numSites.append(int(split[0]))
         time1Excite.append(float(split[1]))
-with open("scaling2Excite.dat", "r") as f:
-    for line in f:
-        split = line.split()
-        time2Excite.append(float(split[1]))
+# with open("scaling2Excite.dat", "r") as f:
+    # for line in f:
+        # split = line.split()
+        # time2Excite.append(float(split[1]))
 
 # Plot each line
 plt.plot(numSites, time1Excite, "-g^", ms=10, lw=2, label="1 excitation (left end to right end)")
-plt.plot(numSites, time2Excite, "--b^", ms=10, lw=2, label="2 excitations (both ends to both ends)")
+# plt.plot(numSites, time2Excite, "--b^", ms=10, lw=2, label="2 excitations (both ends to both ends)")
 
 # Set the size of the axis ticks
 ax1.tick_params(axis='y', pad=10, labelsize=20)
@@ -39,12 +39,12 @@ plt.xlabel("", fontsize=20, color='black')
 plt.ylabel("", fontsize=20, color='black')
 plt.grid(True)
 ax1.set_xlabel("spins in linear chain", labelpad=10)
-ax1.set_ylabel("time to optimise for 95% fidelity (s)", labelpad=20)
-plt.xlim(0, max(numSites)+1)
+ax1.set_ylabel("time to optimise for 99% fidelity (s)", labelpad=20)
+plt.xlim(min(numSites)-1, max(numSites)+1)
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 # Add the legend
-l=legend(loc='upper left', ncol=1, fontsize=20)
+# l=legend(loc='upper left', ncol=1, fontsize=20)
 
 # Nicer spacing
 plt.tight_layout()
