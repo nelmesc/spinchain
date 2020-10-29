@@ -38,8 +38,10 @@ ax1.tick_params(axis='x', pad=10, labelsize=20)
 plt.xlabel("", fontsize=20, color='black')
 plt.ylabel("", fontsize=20, color='black')
 plt.grid(True)
-ax1.set_xlabel("number of sites in linear chain", labelpad=10)
-ax1.set_ylabel("time taken to reach 95% fidelity / s", labelpad=20)
+ax1.set_xlabel("spins in linear chain", labelpad=10)
+ax1.set_ylabel("time to optimise for 95% fidelity (s)", labelpad=20)
+plt.xlim(0, max(numSites)+1)
+ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 # Add the legend
 l=legend(loc='upper left', ncol=1, fontsize=20)

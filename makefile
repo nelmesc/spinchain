@@ -24,7 +24,7 @@ binDir = "/usr/bin/"
 
 # Flags to use
 flagsFast = -O3 -march=native
-flagsDebug = -O3 -g -Wall -fcheck=all -pg
+flagsDebug = -g -Wall -fcheck=all -pg
 #flags = $(flagsDebug)
 flags = $(flagsFast)
 

@@ -252,7 +252,6 @@ subroutine solve_genetic()
 
         ! Evaluate all of the genomes to get their fitnesses
         do j = array_start, array_end
-
             fitnesses(j) = genetic_fitness(population(j), best_fid, best_time, best_qual, numModes) 
         end do
 
@@ -339,13 +338,21 @@ subroutine solve_genetic()
 
         end if
 
-        ! If the maximum fitness goes above a certain value, stop (can be set > 100 to never)
-        if (maxval(fitnesses) > stop_after_fit) then
-            if (on_root_node .and. .not. (stop_after_time_full .or. stop_after_time)) then
-                write(6, "(A)") ""
-                write(6, "(A,f0.1,A)") "Stopping early since required fitness reached (", stop_after_fit, ")"
-            end if
-            exit
+        ! If given a max fidelity
+        if (stop_after_fid > 0) then
+
+            ! Find the best result (from any thread) and run to get fidelity
+            bestIndex = maxloc(fitnesses, 1)
+            bestFitOverall = genetic_fitness(population(bestIndex), best_fid, best_time, best_qual, numModes)
+
+            ! If the maximum fitness goes above a certain value, stop (can be set > 100 to never)
+            if (best_fid(1) > stop_after_fid) then
+                if (on_root_node .and. .not. (stop_after_time_full .or. stop_after_time)) then
+                    write(6, "(A,f0.1,A)") "Stopping early since required fitness reached (", stop_after_fid, ")"
+                end if
+                exit
+            endif 
+
         end if
 
         ! Keep creating new genomes until the generation size is reached

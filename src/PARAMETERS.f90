@@ -68,7 +68,6 @@ logical                   :: use_genetic              = .false.
 ! Number of networks being tested each generation
 integer                   :: genomes_per_generation   = 1024
 integer                   :: max_generations          = 200
-real(kind=dbl)            :: stop_after_fit           = 100000
 
 ! Mutation parameters, increasing these increases search space
 integer                   :: num_initial_mutations    = 50
@@ -79,6 +78,8 @@ integer                   :: mutate_amount            = -1
 integer                   :: max_val                  = -1
 integer, parameter        :: min_val                  = 1
 
+! Should the algorithm stop after a certain fidelity is reached
+real(kind=dbl)            :: stop_after_fid           = -1
 
 ! Should the alternating crossover method be used?
 logical,        parameter :: use_alternating          = .true.

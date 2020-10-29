@@ -59,7 +59,7 @@ program wrapper
                 stop
             end if
 
-            stop_after_fit = chars_to_int(args(i+1))
+            stop_after_fid = chars_to_int(args(i+1)) / 100.0
 
         else if (args(i) == "-g" .or. args(i) == "--genomes") then
 

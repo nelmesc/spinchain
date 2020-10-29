@@ -133,47 +133,23 @@ do
 	elif [ "$var" = "-E" ] || [ "$var" = "--eetest" ] ;
 	then
 
-		# TODO
-
 		if [ "$2" = "" ] ;
 		then
 			echo "ERROR - please specify a network to test scaling on"
 			exit 1
 		fi
 
+		gen="$2"
+		if [ "$2" = "-E" ] || [ "$2" = "-eetest" ] ;
+		then
+			gen=$1
+		fi
+
 		> eetest.dat
-
-		#for ee in $(seq 0.0 0.01 0.135)
-		#do
-			#source $0 -e $ee $2
-			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
-			#fitness="${fitness:1}"
-			#echo "ran for alpha = $ee, got $fitness"
-			#echo $ee $fitness >> eetest.dat
-
-		#done
-
-		#for ee in $(seq 0.135 0.001 0.145)
-		#do
-			#source $0 -e $ee $2
-			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
-			#fitness="${fitness:1}"
-			#echo "ran for alpha = $ee, got $fitness"
-			#echo $ee $fitness >> eetest.dat
-		#done
-
-		#for ee in $(seq 0.145 0.01 0.25)
-		#do
-			#source $0 -e $ee $2
-			#fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
-			#fitness="${fitness:1}"
-			#echo "ran for alpha = $ee, got $fitness"
-			#echo $ee $fitness >> eetest.dat
-		#done
 
 		for ee in $(seq 0.0 0.03 1.0)
 		do
-			source $0 -e $ee $2
+			source $0 -e $ee $gen
 			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
 			fitness="${fitness:1}"
 			echo "ran for alpha = $ee, got $fitness"
@@ -197,7 +173,9 @@ do
 		> scaling1Excite.dat
 		> scaling2Excite.dat
 
-		for sites in $(seq 1 10)
+		# TODO
+
+		for sites in $(seq 1 20)
 		do
 
 			startVal=65
@@ -209,7 +187,7 @@ do
 			for i in $(seq $startVal $endVal)
 			do
 				j=$(echo "$i+1" | bc)
-				bulk="$bulk$(chr $i)$(chr $j)500"
+				bulk="$bulk$(chr $i)$(chr $j)5000"
 			done
 			
 			echo "running for $sites sites with 1 excitation"
@@ -217,7 +195,7 @@ do
 			total=0
 			for i in 1 2 3 
 			do
-				attempt=$(source $0 -C 1 -T -F 95 -g 4000 -G 10000 "${braket}${bulk}")
+				attempt=$(source $0 -T -F 95 -G 400 "${braket}${bulk}")
 				echo " - repeat $i took $attempt seconds"
 				total=$(echo "scale=3;$total+$attempt" | bc)
 			done
@@ -229,7 +207,7 @@ do
 			total=0
 			for i in 1 2 3 
 			do
-				attempt=$(source $0 -C 1 -T -F 95 -g 4000 -G 10000 "${braket}${bulk}")
+				attempt=$(source $0 -T -F 95 -G 400 "${braket}${bulk}")
 				echo " - repeat $i took $attempt seconds"
 				total=$(echo "scale=3;$total+$attempt" | bc)
 			done
@@ -240,7 +218,7 @@ do
 
 		# Run the matplotlib script and then delete the files
 		python3 $parent_path/sites.py
-		rm scaling1Excite.dat scaling2Excite.dat 
+		#rm scaling1Excite.dat scaling2Excite.dat 
 
 		exit 1
 
