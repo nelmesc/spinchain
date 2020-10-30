@@ -172,7 +172,6 @@ do
 
 		# Clear the files
 		> scaling1Excite.dat
-		#> scaling2Excite.dat
 
 		maxVal=20
 
@@ -195,36 +194,21 @@ do
 			echo "running for $sites sites with 1 excitation"
 			braket="<A|$(chr $endValPlus)>"
 			echo \"$braket$bulk\"
-			total=0
+			total=""
 			repeats=10
 			for i in $(seq 1 $repeats)
 			do
 				attempt=$(source $0 -T -F 99 -w 30 -m 500 -M 500 -g 256 -G 400 "${braket}${bulk}")
 				echo " - repeat $i took $attempt seconds"
-				total=$(echo "scale=3;$total+$attempt" | bc)
+				total="$total $attempt"
 			done
-			new=$(echo "scale=3;$total/$repeats" | bc)
-			echo $sites $new >> scaling1Excite.dat
-
-			#echo "running for $sites sites with 2 excitation"
-			#braket="<$(chr $startVal)$(chr $startValPlus)|$(chr $endVal)$(chr $endValPlus)>"
-			#echo \"$braket$bulk\"
-			#total=0
-			#for i in 1 2 3 
-			#do
-				#attempt=$(source $0 -T -F 95 -G 4000 "${braket}${bulk}")
-				#echo " - repeat $i took $attempt seconds"
-				#total=$(echo "scale=3;$total+$attempt" | bc)
-			#done
-			#new=$(echo "scale=3;$total/3" | bc)
-			#echo $sites $new >> scaling2Excite.dat
+			echo $sites $total >> scaling1Excite.dat
 
 		done
 
 		# Run the matplotlib script and then delete the files
 		python3 $parent_path/sites.py
-		rm scaling1Excite.dat 
-		#rm scaling2Excite.dat 
+		#rm scaling1Excite.dat 
 
 		exit 1
 
