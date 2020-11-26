@@ -7,6 +7,14 @@ current_path=$( pwd -P )
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 numproc=$(lscpu | grep "Core(s)" | awk '{print $4}')
+if [[ $numproc != *[!\ ]* ]]; then
+	numproc=$(lscpu | grep "Núcleo(s)" | awk '{print $4}')
+fi
+if [[ $numproc != *[!\ ]* ]]; then
+	echo "Couldn't auto-detect number of cores to use, using 1"
+	numproc=1
+fi
+
 
 # Help function
 function outputHelp {
@@ -175,7 +183,7 @@ do
 
 		maxVal=20
 
-		for sites in $(seq 6 $maxVal)
+		for sites in $(seq 2 $maxVal)
 		do
 
 			startVal=65
@@ -195,7 +203,7 @@ do
 			braket="<A|$(chr $endValPlus)>"
 			echo \"$braket$bulk\"
 			total=""
-			repeats=10
+			repeats=100
 			for i in $(seq 1 $repeats)
 			do
 				attempt=$(source $0 -T -F 99 -w 30 -m 500 -M 500 -g 256 -G 400 "${braket}${bulk}")

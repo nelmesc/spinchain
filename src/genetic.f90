@@ -359,8 +359,13 @@ subroutine solve_genetic()
         do j = array_start, array_end
 
             ! Choose the parents
-            parent1 = genetic_select(fitnesses, fitness_sum)
-            parent2 = genetic_select(fitnesses, fitness_sum)
+            if (use_bogo) then
+                parent1 = int(array_start+(algor_uniform_random()+0.5)*(array_end-array_start-1))
+                parent2 = int(array_start+(algor_uniform_random()+0.5)*(array_end-array_start-1))
+            else
+                parent1 = genetic_select(fitnesses, fitness_sum)
+                parent2 = genetic_select(fitnesses, fitness_sum)
+            end if
 
             ! Crossover the genomes
             population_new(j) = genetic_crossover(population(parent1), population(parent2))
@@ -407,7 +412,7 @@ subroutine solve_genetic()
         ! If requested, output the time taken and stop
         if (stop_after_time_full) then
 
-            write(6, "(f7.3)") current_time-start_time
+            write(6, "(f15.3)") current_time-start_time
 
             ! Stop the parallelisation
             call MPI_FINALIZE(mpi_error)

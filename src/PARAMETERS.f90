@@ -84,6 +84,9 @@ real(kind=dbl)            :: stop_after_fid           = -1
 ! Should the alternating crossover method be used?
 logical,        parameter :: use_alternating          = .true.
 
+! Should a bogo method be used for testing?
+logical :: use_bogo = .false.
+
 ! Should the fitness function be linear with fidelity?
 logical                   :: linear_fitness           = .false.
 logical                   :: force_fitness            = .false.
