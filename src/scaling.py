@@ -69,5 +69,5 @@ l=legend(loc="upper left", ncol=1, fontsize=20)
 plt.tight_layout()
 
 # Save as a png
-savefig('scalingParallel.png', transparent=False)
+savefig('scalingParallel.pdf', transparent=False)
 

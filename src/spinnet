@@ -1,11 +1,13 @@
 #!/bin/bash
 
-#Move state into main folder for initialisation
+# Move state into main folder for initialisation
 mv ./output/final_state.data ./ 2> /dev/null
 
+# Fix any path issues
 current_path=$( pwd -P )
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
+# Get the number of cores to use
 numproc=$(lscpu | grep "Core(s)" | awk '{print $4}')
 if [[ $numproc != *[!\ ]* ]]; then
 	numproc=$(lscpu | grep "Núcleo(s)" | awk '{print $4}')
@@ -15,6 +17,8 @@ if [[ $numproc != *[!\ ]* ]]; then
 	numproc=1
 fi
 
+# To prevent localisation issues (1.3 not 1,3)
+LC_NUMERIC=en_US.UTF-8
 
 # Help function
 function outputHelp {
@@ -158,6 +162,7 @@ do
 
 		for ee in $(seq 0.0 0.03 1.0)
 		do
+			echo "$0 -e $ee $gen"
 			source $0 -e $ee $gen
 			fitness=$(grep "with fitness" output-latest/genetic.out | awk '{ print $4 }')
 			fitness="${fitness:1}"
@@ -304,6 +309,7 @@ then
 	python3 $parent_path/genetic.py genetic.out
 	mkdir -p output/plots
 	mv ./*.png ./output/plots 2> /dev/null
+	mv ./*.pdf ./output/plots 2> /dev/null
 	isGenetic=false
 
 	if [ "$anim" = "true" ] ;
@@ -374,6 +380,7 @@ if [ -f info.data ]; then
 			#If plots have been created move them to the required folder
 			mkdir -p output/plots
 			mv ./*.png ./output/plots
+			mv ./*.pdf ./output/plots
 
 		fi
 
@@ -402,6 +409,7 @@ if [ -f info.data ]; then
 			#If plots have been created move them to the required folder
 			mkdir -p output/plots
 			mv ./*.png ./output/plots 2> /dev/null
+			mv ./*.pdf ./output/plots 2> /dev/null
 
 		fi
 

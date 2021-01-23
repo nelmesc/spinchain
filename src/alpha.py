@@ -33,6 +33,7 @@ ax1.tick_params(axis='x', pad=10, labelsize=20)
 # Set the names of the axis labels
 plt.xlabel(r'$\alpha$', fontsize=20, color='black')
 plt.ylabel(r"$F(t_f)$", fontsize=20, color='black')
+plt.grid(True)
 ax1.set_xlabel(r"$\alpha$", labelpad=10)
 ax1.set_ylabel(r"$F(t_f)$", labelpad=20)
 
@@ -43,6 +44,6 @@ ax1.set_ylabel(r"$F(t_f)$", labelpad=20)
 plt.tight_layout()
 
 # Save as a png
-savefig('alphaScaling.png', transparent=False)
+savefig('alphaScaling.pdf', transparent=False)
 
 

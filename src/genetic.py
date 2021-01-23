@@ -40,12 +40,12 @@ ax1.tick_params(axis='x', labelsize=20)
 
 # Set the names of the axis labels
 plt.xlabel('generation', fontsize=20, color='black')
-plt.ylabel('fitness', fontsize=20, color='black')
+plt.ylabel(r"$F(t_f)$", fontsize=20, color='black')
 plt.grid(True)
 plt.tight_layout()
 
 # Add the legend
-l=legend(loc='lower right', ncol=1, fontsize=20)
+l=legend(bbox_to_anchor=(0.4,0.55), loc="lower right", ncol=1, fontsize=20)
 
 # Save as a png
-savefig('genetic.png', transparent=False)
+savefig('genetic.pdf', transparent=False)

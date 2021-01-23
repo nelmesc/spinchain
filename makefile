@@ -25,8 +25,8 @@ binDir = "/usr/bin/"
 # Flags to use
 flagsFast = -O3 -march=native
 flagsDebug = -g -Wall -fcheck=all -pg
-flags = $(flagsDebug)
-#flags = $(flagsFast)
+#flags = $(flagsDebug)
+flags = $(flagsFast)
 
 # Compile fortran first create bin, then execute
 running: clean | $(bin) exec moving

@@ -87,7 +87,7 @@ plt.xlabel("", fontsize=20, color='black')
 plt.ylabel("", fontsize=20, color='black')
 plt.grid(True)
 ax1.set_xlabel("spins in linear chain", labelpad=10)
-ax1.set_ylabel("time to optimise for 99% fidelity (s)", labelpad=20)
+ax1.set_ylabel("time to optimise for 99% fidelity [s]", labelpad=20)
 plt.xlim(min(numSites)-1, max(numSites)+1)
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 
@@ -97,6 +97,6 @@ plt.legend(prop={'size': 20})
 plt.tight_layout()
 
 # Save as a png
-savefig('scalingSites.png', transparent=False)
+savefig('scalingSites.pdf', transparent=False)
 
 
