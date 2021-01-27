@@ -44,6 +44,7 @@ function outputHelp {
 	echo "  -s --scaling            evaluate parallel scaling for a given network"
 	echo "  -E --eetest             evaluate a network for nearby eescale values"
 	echo "  -S --sites              generate scaling graph up to num of sites (def 20)"
+	echo "  -F --fixed              generate scaling graph of time vs matrix size"
 	echo "  -d --delete             delete all output folders in this directory"
 	echo "  -c --convert     [int]  convert the string to a certain num of digits"
 	echo " "
@@ -171,7 +172,57 @@ do
 		done
 
 		python3 $parent_path/alpha.py
-		rm eetest.dat 
+
+		exit 1
+
+	elif [ "$var" = "-F" ] || [ "$var" = "--fixed" ] ;
+	then
+
+		# TODO
+
+		chr() {
+		  [ "$1" -lt 256 ] || return 1
+		  printf "\\$(printf '%03o' "$1")"
+		}
+
+
+		# Clear the file
+		> scalingFixed.dat
+			
+		maxVal=8
+		for sites in $(seq 3 $maxVal)
+		do
+
+			startVal=65
+			endVal=$(echo "$startVal+$sites" | bc)
+			endValPlus=$(echo "$startVal+$sites+1" | bc)
+			startValPlus=$(echo "$startVal+1" | bc)
+			middleVal=$(echo "scale=0;($startVal+$endVal)/2" | bc)
+
+			bulk=""
+			for i in $(seq $startVal $endVal)
+			do
+				j=$(echo "$i+1" | bc)
+				bulk="$bulk$(chr $i)$(chr $j)5000"
+			done
+			
+			braket="<A|$(chr $endValPlus)>"
+			echo "running for $sites sites with 1 excitation"
+			ex1=$(source $0 -T -G 200 "${braket}${bulk}")
+
+			braket="<AB|$(chr $endValPlus)>"
+			echo "running for $sites sites with 2 excitations"
+			ex2=$(source $0 -T -G 200 "${braket}${bulk}")
+
+			braket="<ABC|$(chr $endValPlus)>"
+			echo "running for $sites sites with 3 excitations"
+			ex3=$(source $0 -T -G 200 "${braket}${bulk}")
+
+			echo $sites $ex1 $ex2 $ex3 >> scalingFixed.dat
+
+		done
+
+		python3 $parent_path/fixed.py
 
 		exit 1
 
@@ -183,7 +234,7 @@ do
 		  printf "\\$(printf '%03o' "$1")"
 		}
 
-		# Clear the files
+		# Clear the file
 		> scaling1Excite.dat
 
 		maxVal=20
@@ -219,9 +270,8 @@ do
 
 		done
 
-		# Run the matplotlib script and then delete the files
+		# Run the matplotlib script 
 		python3 $parent_path/sites.py
-		#rm scaling1Excite.dat 
 
 		exit 1
 
@@ -272,7 +322,6 @@ do
 		done
 
 		python3 $parent_path/scaling.py
-		rm scalingParallel.dat
 
 		exit 1
 
@@ -419,6 +468,7 @@ if [ -f info.data ]; then
 	mv ./*.out ./output 2> /dev/null
 	mkdir -p ./output/data
 	mv ./*.data ./output/data 2> /dev/null
+	mv ./*.txt ./output/data 2> /dev/null
 	rm -f -r ./output-latest
 	cp -r output ./output-latest
 	mv output ./output-$(date -u +"%F-%H-%M") 2> /dev/null

@@ -45,7 +45,7 @@ plt.grid(True)
 plt.tight_layout()
 
 # Add the legend
-l=legend(bbox_to_anchor=(0.4,0.55), loc="lower right", ncol=1, fontsize=20)
+l=legend(bbox_to_anchor=(0.35,0.68), loc="lower right", ncol=1, fontsize=20)
 
 # Save as a png
 savefig('genetic.pdf', transparent=False)

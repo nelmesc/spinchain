@@ -242,5 +242,6 @@ for index in range(0, len(genomes), skip):
 # Save gif
 perFrame = (gifSeconds * 1000 * skip) / len(genomes)
 im1First.save('network.gif', save_all=True, append_images=networkImages, optimize=True, duration=perFrame, loop=0)
+# im1First.save('network1.pdf')
 im2First.save('dynamics.gif', save_all=True, append_images=dynamicsImages, optimize=True, duration=perFrame, loop=0)
 im3First.save('combined.gif', save_all=True, append_images=combinedImages, optimize=True, duration=perFrame, loop=0)

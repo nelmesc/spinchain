@@ -77,6 +77,8 @@ for i in range(numF):
 #PLOT FIDELITY AGAINST INITIAL STATE AND TARGET STATE (CHANGE WHENEVER)
 y1 = (np.absolute(init))**2
 y2 = (np.absolute(final))**2
+# for i in range(len(x)):
+    # print(x[i], y1[i], y2[i])
 plt.plot(x,y1,color='gray',lw=2,label=r'$|\langle\Psi(t)\vert \psi_{o}\rangle|^2$')
 plt.plot(x,y2,color='black',ls=':',lw=2,label=r'$|\langle\Psi(t)\vert \psi_{A}\rangle|^2$')
 
@@ -85,7 +87,7 @@ ax1.tick_params(axis='y', labelsize=20)
 ax1.tick_params(axis='x', labelsize=20)
 
 #SET LABEL NAMES
-plt.xlabel('$\mathrm{time \cdot J_{max}}$',fontsize=25,color='black')
+plt.xlabel('$\mathrm{t \cdot J_{max}}$',fontsize=25,color='black')
 plt.ylabel('${\cal{F}}(t)$',fontsize=25,color='black')
 plt.tight_layout()
 
@@ -93,4 +95,4 @@ plt.tight_layout()
 l=legend(loc=1,frameon=False,borderaxespad=0.0,fontsize=20)
 
 #SAVE AS PNG PICTURE
-savefig('dynamics.png',transparent=False)
+savefig('dynamics.pdf',transparent=False)
