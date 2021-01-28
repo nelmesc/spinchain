@@ -40,7 +40,7 @@ ax1.tick_params(axis='x', labelsize=20)
 
 # Set the names of the axis labels
 plt.xlabel('generation', fontsize=20, color='black')
-plt.ylabel(r"$F(t_f)$", fontsize=20, color='black')
+plt.ylabel("fitness score", fontsize=20, color='black')
 plt.grid(True)
 plt.tight_layout()
 

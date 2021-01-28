@@ -35,7 +35,7 @@ plt.xlabel(r'$\alpha$', fontsize=20, color='black')
 plt.ylabel(r"$F(t_f)$", fontsize=20, color='black')
 plt.grid(True)
 ax1.set_xlabel(r"$\alpha$", labelpad=10)
-ax1.set_ylabel(r"$F(t_f)$", labelpad=20)
+ax1.set_ylabel("fidelity", labelpad=20)
 
 # Add the legend
 # l=legend(loc='lower right', ncol=1, fontsize=20)

@@ -88,7 +88,7 @@ ax1.tick_params(axis='x', labelsize=20)
 
 #SET LABEL NAMES
 plt.xlabel('$\mathrm{t \cdot J_{max}}$',fontsize=25,color='black')
-plt.ylabel('${\cal{F}}(t)$',fontsize=25,color='black')
+plt.ylabel("fidelity",fontsize=25,color='black')
 plt.tight_layout()
 
 #LEGEND
