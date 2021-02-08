@@ -461,6 +461,12 @@ subroutine solve_genetic()
         write(geneticFile, "(A)") ")"
         write(geneticFile, "(A)") ""
 
+        ! Output for animation 
+        if (create_animation) then
+            bestFit = genetic_fitness(population(bestIndex), best_fid, best_time, best_qual, numModes, bestDynams)
+            write(animationFile, "(A,A,100(f10.5))") trim(population(bestIndex)), trim(pos_direct), bestDynams
+        end if
+
         ! Ensure the file is written as it goes
         flush(geneticFile)
 

@@ -363,7 +363,7 @@ then
 
 	if [ "$anim" = "true" ] ;
 	then
-		echo "Creating animation, should take around 30 seconds"
+		echo "Creating animation, takes around 30 seconds per 200 generations"
 		python3 $parent_path/animate.py anim.data
 		mv ./*.gif ./output/plots 2> /dev/null
 	fi

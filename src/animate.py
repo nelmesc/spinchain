@@ -9,18 +9,21 @@ import math
 # Sizes in pixels
 networkWidth = 800
 dynamicsWidth = 800
-height = 560
-padding = 20
-nodeSize = 40
-betweenNodes = 100
+height = 800
+padding = 40
+nodeSize = 80
+betweenNodes = 200
 maxSize = 5000
-couplingWidth = 5
+couplingWidth = 10
+textSize = 40
+dpi = 50
+barWidth = 50
 
 # How often it should sample, 5 means create one frame every 5 genomes
 skip = 1
 
 # How long the gif should be in seconds
-gifSeconds = 30
+gifSeconds = 10
 
 # Heatmap function, val between 0 and 1 -> colour tuple
 def heatmap(val):
@@ -181,19 +184,20 @@ for index in range(0, len(genomes), skip):
                 draw1.ellipse([prevX-nodeSize/2,prevY-nodeSize/2,prevX+nodeSize/2,prevY+nodeSize/2],fill=(0,0,0))
 
     # Crop so everything is centered, leaving space for the title and the colour bar
-    im1 = im1.crop((minX-nodeSize, minY-nodeSize-40, maxX+nodeSize, maxY+nodeSize+40))
+    im1 = im1.crop((minX-nodeSize, minY-nodeSize-textSize-padding, maxX+nodeSize, maxY+nodeSize+barWidth+padding+textSize))
 
     # Write the generation title above it
     draw1 = ImageDraw.Draw(im1)
-    fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeSans.ttf", 20)
-    draw1.text((im1.size[0]/2-70,15), "generation " + str(index), font=fnt, fill=(0,0,0))
+    fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeSans.ttf", textSize)
+    draw1.text((im1.size[0]/2-textSize*2.8,padding/2), "generation " + str(index), font=fnt, fill=(0,0,0))
 
     # Draw a heatmap bar
-    for x in range(100, im1.size[0]-100):
-        col = heatmap((x-100)/float(im1.size[0]-2*100))
-        draw1.line([x, im1.size[1]-10, x, im1.size[1]-40], fill=col, width=1)
-    draw1.text((20,im1.size[1]-45), "0% of\nmax", font=fnt, fill=(0,0,0))
-    draw1.text((im1.size[0]-80,im1.size[1]-45), "100% of\nmax", font=fnt, fill=(0,0,0))
+    fromEdge = padding+textSize*4
+    for x in range(fromEdge, im1.size[0]-fromEdge):
+        col = heatmap((x-fromEdge)/float(im1.size[0]-2*fromEdge))
+        draw1.line([x, im1.size[1]-padding, x, im1.size[1]-padding-barWidth], fill=col, width=1)
+    draw1.text((padding,im1.size[1]-padding-barWidth-textSize/4), "0% of\nmax", font=fnt, fill=(0,0,0))
+    draw1.text((im1.size[0]-padding-textSize*3,im1.size[1]-textSize/4-padding-barWidth), "100% of\nmax", font=fnt, fill=(0,0,0))
 
     # Scale if too large
     if im1.size[0] > networkWidth:
@@ -204,16 +208,18 @@ for index in range(0, len(genomes), skip):
     # Generate dynamics graph as in dynamics.py but with slight formatting tweaks
     x = np.linspace(0, maxTime, numSteps)
     y = np.array(fidelities[index])
-    fig = plt.figure(figsize=(10,7), dpi=80)
+    fig = plt.figure(figsize=((dynamicsWidth-padding*2)/dpi,(dynamicsWidth-padding*4)/dpi), dpi=dpi)
     ax1 = plt.subplot()
-    plt.title("generation " + str(index), fontsize=20)
+    plt.title("", fontsize=textSize)
     ax1.set_xlim([0, maxTime])
     ax1.set_ylim([0.0, 1.0])
-    plt.plot(x,y,color='black',lw=2)
-    ax1.tick_params(axis='y', labelsize=20)
-    ax1.tick_params(axis='x', labelsize=20)
-    plt.xlabel('$\mathrm{time \cdot J_{max}}$',fontsize=25,color='black')
-    plt.ylabel('${\cal{F}}(t)$',fontsize=25,color='black')
+    for axis in ['top','bottom','left','right']:
+        ax1.spines[axis].set_linewidth(textSize/10)
+    plt.plot(x,y,color='black',lw=textSize/10)
+    ax1.tick_params(axis='y', labelsize=textSize)
+    ax1.tick_params(axis='x', labelsize=textSize)
+    plt.xlabel('$\mathrm{time \cdot J_{max}}$',fontsize=textSize,color='black')
+    plt.ylabel("fidelity",fontsize=textSize,color='black')
     plt.tight_layout()
 
     # Convert this matplotlib image to a PIL image
@@ -225,23 +231,25 @@ for index in range(0, len(genomes), skip):
     im3 = Image.new('RGB', (dynamicsWidth+networkWidth+padding, height), (255, 255, 255))
 
     # Combine images
-    im3.paste(im1, (int(networkWidth/2-im1.size[0]/2), int(height/2-im1.size[1]/2)))
-    im3.paste(im2, (networkWidth+padding, 0))
-
-    # Add all to arrays
-    networkImages.append(im1)
-    dynamicsImages.append(im2)
-    combinedImages.append(im3)
+    im3.paste(im1, (padding, int(height/2-im1.size[1]/2)))
+    im3.paste(im2, (networkWidth+padding*2, int(height/2-im2.size[1]/2)))
 
     # Use the first ones as the basis for the gif
     if index == 0:
-        im1First = im1
-        im2First = im2
-        im3First = im3
+        im1First = im1.copy()
+        im2First = im2.copy()
+        im3First = im3.copy()
+    else:
+
+        # Add all to arrays
+        networkImages.append(im1.copy())
+        dynamicsImages.append(im2.copy())
+        combinedImages.append(im3.copy())
 
 # Save gif
 perFrame = (gifSeconds * 1000 * skip) / len(genomes)
 im1First.save('network.gif', save_all=True, append_images=networkImages, optimize=True, duration=perFrame, loop=0)
-# im1First.save('network1.pdf')
+im1First.save('networkStart.png')
+networkImages[-1].save('networkEnd.png')
 im2First.save('dynamics.gif', save_all=True, append_images=dynamicsImages, optimize=True, duration=perFrame, loop=0)
 im3First.save('combined.gif', save_all=True, append_images=combinedImages, optimize=True, duration=perFrame, loop=0)
