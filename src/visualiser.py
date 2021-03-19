@@ -170,10 +170,12 @@ class Application(tk.Frame):
         numNodes = 0
         uniqueLetters = []
 
+        print(gen)
+
         # Determine the number of digits used
         numDigits = 0
         i = 2
-        while gen[i] in "0123456789":
+        while i < len(gen) and gen[i] in "0123456789":
             numDigits += 1
             i += 1
 
