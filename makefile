@@ -32,7 +32,7 @@ flags = $(flagsFast)
 running: clean | $(bin) exec moving
 
 dependancies:
-	apt install mpich openmpi-bin gfortran python3 liblapack-dev libblas-dev python3-tk 
+	apt install mpich openmpi-bin gfortran python3 liblapack-dev libblas-dev python3-tk libopenblas-dev
 
 # Global installation
 install:
