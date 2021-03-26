@@ -78,6 +78,9 @@ subroutine solve_genetic()
     ! The seed used for the random number generator
     integer         :: seed
 
+    ! The mapping of chars to node indices
+    character, dimension(:), allocatable :: uniqueChars
+
     ! Hold the change in mutate rate as a real
     real(kind=dbl)  :: mutate_amount_real, mutate_delta
 
@@ -153,6 +156,9 @@ subroutine solve_genetic()
 
         if (.not. (stop_after_time .or. stop_after_time_full)) then
 
+            ! Get the mapping of letters to numbers for output 
+            call get_char_map(custom_string, uniqueChars)
+
             ! Initial output
             if (use_genetic) write(6, "(A)") "Running first generation for a time estimate"
 
@@ -164,6 +170,7 @@ subroutine solve_genetic()
             write(geneticFile, "(A,A)")    "pos directive          = ", trim(pos_direct)
             write(geneticFile, "(A,A)")    "<i|f> directive        = ", trim(init_direct)
             write(geneticFile, "(A,A)")    "stripped genome        = ", trim(custom_string)
+            write(geneticFile, "(A,10000A)")    "letter mapping         = ", uniqueChars
             write(geneticFile, "(A,I0)")   "generations            = ", max_generations
             write(geneticFile, "(A,I0)")   "genomes per generation = ", genomes_per_generation
             write(geneticFile, "(A,f5.3)") "mutate chance          = ", mutate_chance
