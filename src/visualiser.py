@@ -24,6 +24,7 @@ class Application(tk.Frame):
 
         self.initInfo = ""
         self.timeInfo = ""
+        self.stored_genome = ""
 
         # Only refresh the canvas every so often
         self.draw_counter = 0
@@ -63,23 +64,18 @@ class Application(tk.Frame):
         # The array of connections between nodes to draw
         self.connections = []
 
+        # If given a string as an argument, load it into a network
         if len(sys.argv) > 1 and len(sys.argv[1]) > 5:
-
-            # If given a string as an argument, load it into a network
-            self.generate_from_genome(sys.argv[1])
-            self.generate_genome()
+            self.load_from_genome(sys.argv[1])
             self.draw_connections()
 
-        if len(sys.argv) > 2 and len(sys.argv[2]) > 5:
-
-            # If given a string as the second argument, load it into a network
-            self.generate_from_genome(sys.argv[2])
-            self.generate_genome()
+        # If given a string as the second argument, load it into a network 
+        elif len(sys.argv) > 2 and len(sys.argv[2]) > 5:
+            self.load_from_genome(sys.argv[2])
             self.draw_connections()
 
+        # Otherwise just set the genome to be blank
         else:
-
-            # Otherwise just set the genome to be blank
             self.set_genome("")
             self.draw_connections()
 
@@ -109,28 +105,28 @@ class Application(tk.Frame):
 
     # When the enter key is pressed inside the genome entry box
     def process_enter(self, event):
-
         genome = self.genome_string.get(1.0, tk.END).strip()
         if genome[0] == '"': genome = genome[1:]
         if genome[-1] == '"': genome = genome[:-1]
         self.set_genome(genome)
-        self.generate_from_genome(genome)
+        self.load_from_genome(genome)
 
     # Change the text of the genome box
     def set_genome(self, new_genome):
-
+        self.stored_genome = new_genome
         self.genome_string.delete(1.0, tk.END)
         if len(new_genome) > 2:
             self.genome_string.insert(tk.END, '"' + new_genome + '"')
-
+            
     # Given a genome string, create a visualisation of the network
-    def generate_from_genome(self, gen):
+    def load_from_genome(self, gen):
 
         global numDigits
 
         # Strip any spaces and newlines
         gen = gen.replace("\n", "").replace(" ", "")
 
+        # Output the genome that's about to be loaded
         print("Loading: \"" + gen + "\"")
 
         # Process the positional directive
@@ -151,7 +147,7 @@ class Application(tk.Frame):
             self.initInfo = initDirect.group(0)
         gen = re.sub("\<.+\>", "", gen)
 
-        # Process the initial/target directive
+        # Process the time directive
         timeDirect = re.search("@\d+(\.\d+)?", gen)
         if timeDirect is None:
             self.timeInfo = ""
@@ -166,11 +162,10 @@ class Application(tk.Frame):
                 self.nodes[i].destroy()
             self.connections = []
 
+        # Reset everything
         self.nodes = []
         numNodes = 0
         uniqueLetters = []
-
-        print(gen)
 
         # Determine the number of digits used
         numDigits = 0
@@ -198,13 +193,13 @@ class Application(tk.Frame):
 
         # Load the nodes 
         for i in range(numNodes):
-
             self.add_node()
             self.nodes[-1].letter = uniqueLetters[i]
 
         # Load the connections
         for i in range(0, len(gen), 2+numDigits):
 
+            # Get the value
             value = int(gen[i+2:i+2+numDigits])
 
             # If the letters are the wrong way round, make the coupling negative
@@ -278,12 +273,16 @@ class Application(tk.Frame):
     # Add a draggable node to the list of nodes
     def add_node(self, event=None):
 
+        # Create a new node
         self.nodes.append(tk.Label(self,borderwidth=0,compound="center",highlightthickness = 0 ))
+
+        # Give it standard properties
         self.nodes[-1]["image"] = self.node_image
         self.nodes[-1].indexNum = len(self.nodes)-1
-        self.nodes[-1].letter = ""
         self.nodes[-1].isInit = False
         self.nodes[-1].isTarget = False
+
+        # Place it at the mouse cursor
         if event is not None:
             mouse_x = event.widget.winfo_pointerx() - self.winfo_rootx()
             mouse_y = event.widget.winfo_pointery() - self.winfo_rooty()
@@ -291,14 +290,21 @@ class Application(tk.Frame):
         else:
             self.nodes[-1].place(relx=0.5, rely=0.5, anchor="center")
 
+        # Determine the letter for this new node 
+        letters = self.get_letter_sets()
+        for node in self.nodes[:-1]:
+            if node.letter in letters:
+                letters.remove(node.letter)
+        self.nodes[-1].letter = letters[0]
+
+        # Make this node draggable
         self.set_draggable(self.nodes[-1])
 
-        self.generate_genome()
+        # Redraw everything
         self.draw_connections()
 
     # Make a widget draggable (i.e. the nodes)
     def set_draggable(self, widget):
-
         widget.bind("<ButtonPress-1>", self.on_start)
         widget.bind("<B1-Motion>", self.on_drag)
         widget.bind("<ButtonRelease-1>", self.on_drop)
@@ -473,28 +479,21 @@ class Application(tk.Frame):
             self.top_frame.create_oval([x-10, y+40, x+10, y+60], fill="white", outline="white")
             self.top_frame.create_text(x, y+50, font="Sans 13 bold", text=node.letter, fill="black")
 
-        # Regenerate the genome string
+        # Also update the genome 
         self.generate_genome()
 
+    # Generate a genome from the system in memory
     def generate_genome(self):
 
         # Start with a blank string
         gen = ""
         self.set_genome("")
-
-        # Get the list of letters to draw from
-        letters = self.get_letter_sets()
-
-        # Determine the intermediate letters
-        for node in self.nodes[0:]:
-            node.letter = letters.pop(0)
-
         lettersAsWritten = []
 
         if len(self.connections) <= 0:
             return
 
-        # Go through each connection
+        # Go through each connection 
         for con in self.connections:
 
             # Only add the useful connections
@@ -568,7 +567,7 @@ class Application(tk.Frame):
         # Add the directives
         gen = self.timeInfo + self.initInfo + gen + uncomString
 
-        # Update the text box
+        # Update the text box 
         self.set_genome(gen)
 
     def dir_to_angle(self, direct):
@@ -584,11 +583,11 @@ class Application(tk.Frame):
         letters = []
 
         # Capital letters
-        for i in range(1, 24, 1):
+        for i in range(1, 27, 1):
             letters.append(chr(i+64))
 
         # Lowercase letters
-        for i in range(1, 24, 1):
+        for i in range(1, 27, 1):
             letters.append(chr(i+96))
 
         return letters
