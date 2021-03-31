@@ -38,38 +38,40 @@ for vals in times:
 plt.plot(numSites, avgs, "g^", ms=10, lw=2, label="data from 100 repeats")
 plt.errorbar(numSites, avgs, yerr=errors, fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
 
+rounding = 3
+
 # Linear regression
-start = 0
-coef = np.polyfit(numSites[start:],avgs[start:],1)
-poly1d_fn = np.poly1d(coef) 
-linear = ("y = "  
-                + '{0:.2f}'.format(round(coef[0],2)) + r"$x$" + " "
-                + '{0:+.2f}'.format(round(coef[1],2)))
-# plt.plot(numSites[start:], poly1d_fn(numSites[start:]), '-r', label=linear)
+start = 10
+def f1(x, a, b):
+    return a*x+b
+coef, o = curve_fit(f1, numSites[start:], avgs[start:])
+rsquared = 1 - (np.sum((np.array(avgs[start:]) - f1(np.array(numSites[start:]), *coef))**2) / np.sum((avgs[start:] - np.mean(avgs[start:]))**2))
+linear = ("y = " + '{0:.2f}'.format(round(coef[0],2)) + r"$x$" + " " + '{0:+.2f}'.format(round(coef[1],2)) + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[start:], f1(np.array(numSites[start:]), coef[0], coef[1]), '-r', label=linear)
 
 # Quadratic regression
-rounding = 3
-def f(x, a, b):
+start = 2
+def f2(x, a, b):
     return a*(x**b)
-coef, o = curve_fit(f, numSites, avgs)
-rsquared = (o[0][1]*o[1][0]) / (o[0][0]*o[1][1])
-quadratic = ("y = "  
-                + '{0:.3f}'.format(round(coef[0],rounding)) + r"$x^{" + '{0:.3f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites, f(np.array(numSites), coef[0], coef[1]), '-b', label=quadratic)
+coef, o = curve_fit(f2, numSites[start:], avgs[start:])
+rsquared = 1 - (np.sum((np.array(avgs[start:]) - f2(np.array(numSites[start:]), *coef))**2) / np.sum((avgs[start:] - np.mean(avgs[start:]))**2))
+quadratic = ("y = " + '{0:.3f}'.format(round(coef[0],rounding)) + r"$x^{" + '{0:.3f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[start:], f2(np.array(numSites[start:]), coef[0], coef[1]), '-b', label=quadratic)
 
 # Exponential regression
-coef = np.polyfit(numSites,np.log(avgs),1,w=numSites)
-y = np.exp(coef[1]) * np.exp(coef[0]*np.array(numSites))
-expo = ("y = "  
-                + '{0:.2f}'.format(round(np.exp(coef[1]),2)) + " "
-                + r"$e^{"+ '{0:.2f}'.format(round(coef[0],2)) + r"x}$")
-plt.plot(numSites, y, '-k', label=expo)
+start = 2
+def f3(x, a, b):
+    return b*np.exp(a*x)
+coef, o = curve_fit(f3, numSites[start:], avgs[start:])
+rsquared = 1 - (np.sum((np.array(avgs[start:]) - f3(np.array(numSites[start:]), *coef))**2) / np.sum((avgs[start:] - np.mean(avgs[start:]))**2))
+expo = ("y = " + '{0:.2f}'.format(round(np.exp(coef[1]),2)) + " " + r"$e^{"+ '{0:.2f}'.format(round(coef[0],2)) + r"x}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[start:], f3(np.array(numSites[start:]), coef[0], coef[1]), '-g', label=expo)
 
 # Add inset log plot 
-ax2 = ax1.inset_axes([0.20, 0.4, 0.25, 0.25])
-ax2.plot(numSites[start:], avgs[start:], "^g")
-ax2.plot(numSites[start:], y[start:], "-k")
-ax2.set_yscale("log")
+# ax2 = ax1.inset_axes([0.20, 0.4, 0.25, 0.25])
+# ax2.plot(numSites[start:], avgs[start:], "^g")
+# ax2.plot(numSites[start:], y[start:], "-k")
+# ax2.set_yscale("log")
 
 # Set the size of the axis ticks
 ax1.tick_params(axis='y', pad=10, labelsize=20)
@@ -90,5 +92,7 @@ plt.tight_layout()
 
 # Save as a png
 plt.savefig('scalingSites.pdf', transparent=False)
+ax1.set_yscale("log")
+plt.savefig('scalingSitesLog.pdf', transparent=False)
 
 
