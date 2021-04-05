@@ -70,7 +70,7 @@ integer                   :: genomes_per_generation   = 1024
 integer                   :: max_generations          = 200
 
 ! Mutation parameters, increasing these increases search space
-integer                   :: num_initial_mutations    = 50
+integer                   :: num_initial_mutations    = 5
 real(kind=dbl), parameter :: mutate_chance            = 1.0_dbl
 integer                   :: mutate_amount_initial    = -1
 integer                   :: mutate_amount_final      = 1
@@ -98,8 +98,8 @@ logical                   :: energies_only            = .false.
 logical                   :: allow_negative           = .false.
 
 ! Max fidelity search range
-real(kind=dbl), parameter :: min_time                 = 0.0_dbl  
-real(kind=dbl), parameter :: max_time                 = 15.0_dbl  
+real(kind=dbl)            :: min_time                 = 0.0_dbl  
+real(kind=dbl)            :: max_time                 = 20.0_dbl  
 
 ! Should time be minimised along with the fidelity?
 logical                   :: minimise_time            = .true.

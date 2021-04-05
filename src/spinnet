@@ -44,7 +44,7 @@ function outputHelp {
 	echo "  -s --scaling            evaluate parallel scaling for a given network"
 	echo "  -E --eetest             evaluate a network for nearby eescale values"
 	echo "  -S --sites              generate scaling graph up to num of sites (def 20)"
-	echo "  -F --fixed              generate scaling graph of time vs matrix size"
+	echo "  -X --fixed              generate scaling graph of time vs matrix size"
 	echo "  -d --delete             delete all output folders in this directory"
 	echo "  -c --convert     [int]  convert the string to a certain num of digits"
 	echo " "
@@ -175,16 +175,13 @@ do
 
 		exit 1
 
-	elif [ "$var" = "-F" ] || [ "$var" = "--fixed" ] ;
+	elif [ "$var" = "-X" ] || [ "$var" = "--fixed" ] ;
 	then
-
-		# TODO
 
 		chr() {
 		  [ "$1" -lt 256 ] || return 1
 		  printf "\\$(printf '%03o' "$1")"
 		}
-
 
 		# Clear the file
 		> scalingFixed.dat
@@ -229,17 +226,21 @@ do
 	elif [ "$var" = "-S" ] || [ "$var" = "--sites" ] ;
 	then
 
+		# Function which returns the character from an asii value
 		chr() {
 		  [ "$1" -lt 256 ] || return 1
 		  printf "\\$(printf '%03o' "$1")"
 		}
 
-		# Clear the file
+		# Clear the file 
 		> scaling1Excite.dat
 
-		maxVal=20
+		# Fixed settings
+		minVal=3
+		maxVal=24
+		repeats=100
 
-		for sites in $(seq 2 $maxVal)
+		for sites in $(seq $minVal $maxVal)
 		do
 
 			startVal=65
@@ -259,10 +260,9 @@ do
 			braket="<A|$(chr $endValPlus)>"
 			echo \"$braket$bulk\"
 			total=""
-			repeats=100
 			for i in $(seq 1 $repeats)
 			do
-				attempt=$(source $0 -T -F 99 -w 30 -m 500 -M 500 -g 256 -G 400 "${braket}${bulk}")
+				attempt=$(source $0 -T -F 95 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
 				echo " - repeat $i took $attempt seconds"
 				total="$total $attempt"
 			done

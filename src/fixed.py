@@ -47,7 +47,7 @@ def f2(x, a, b):
     return a*(x**2) + b*x
 coef, o = curve_fit(f2, numSites, ex2)
 rsquared = 1 - (np.sum((np.array(ex2) - f2(np.array(numSites), *coef))**2) / np.sum((ex2 - np.mean(ex2))**2))
-linear2 = ("y = " + '{0:.2f}'.format(round(coef[0],2)) + r"$x^2$" + " " + '{0:.2f}'.format(round(coef[1],2)) + r"$x$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+linear2 = ("y = " + '{0:.2f}'.format(round(coef[0],2)) + r"$x^2$" + " " + '{0:+.2f}'.format(round(coef[1],2)) + r"$x$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
 plt.plot(bonusSites, f2(np.array(bonusSites), *coef), '--b', label=linear2)
 
 # Polynomial fit
@@ -55,7 +55,7 @@ def f3(x, a, b, c):
     return a*(x**3) + b*(x**2) + c*x
 coef, o = curve_fit(f3, numSites, ex3)
 rsquared = 1 - (np.sum((np.array(ex3) - f3(np.array(numSites), *coef))**2) / np.sum((ex3 - np.mean(ex3))**2))
-linear3 = ("y = " + '{0:.2f}'.format(round(coef[0],2)) + r"$x^3$" + '{0:.2f}'.format(round(coef[1],2)) + r"$x^2$" + " " + '{0:.2f}'.format(round(coef[2],2)) + r"$x$"  + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+linear3 = ("y = " + '{0:.2f}'.format(round(coef[0],2)) + r"$x^3$" + '{0:+.2f}'.format(round(coef[1],2)) + r"$x^2$" + " " + '{0:+.2f}'.format(round(coef[2],2)) + r"$x$"  + "    $R^2=" + str(round(rsquared, rounding)) + "$")
 plt.plot(bonusSites, f3(np.array(bonusSites), *coef), '--r', label=linear3)
 
 # Set the size of the axis ticks

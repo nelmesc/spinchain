@@ -355,7 +355,7 @@ subroutine solve_genetic()
             ! If the maximum fitness goes above a certain value, stop (can be set > 100 to never)
             if (best_fid(1) > stop_after_fid) then
                 if (on_root_node .and. .not. (stop_after_time_full .or. stop_after_time)) then
-                    write(6, "(A,f0.1,A)") "Stopping early since required fitness reached (", stop_after_fid, ")"
+                    write(6, "(A,f4.2,A)") "Stopping early since required fidelity reached (", stop_after_fid, ")"
                 end if
                 exit
             endif 

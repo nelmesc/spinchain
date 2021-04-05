@@ -123,7 +123,12 @@ function chars_to_real(chars)
 
     integer :: digitsAfter, i
 
-    digitsAfter = len_trim(chars) - index(chars, ".")
+    ! See if there's a "." and if so, where?
+    if (scan(chars, ".") > 0) then
+        digitsAfter = len_trim(chars) - index(chars, ".")
+    else
+        digitsAfter = 0
+    end if
 
     ! Generate the format string, since can't do I0 reads on a string
     write(format_string, "(A,I0,A,I0,A)") "(F", len_trim(chars), ".", digitsAfter, ")"

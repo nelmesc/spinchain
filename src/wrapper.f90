@@ -47,6 +47,7 @@ program wrapper
             end if
 
             totalTime = chars_to_real(args(i+1))
+            max_time = totalTime
 
         else if (args(i) == "-e" .or. args(i) == "--eescale") then
 
