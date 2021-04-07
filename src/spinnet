@@ -232,13 +232,15 @@ do
 		  printf "\\$(printf '%03o' "$1")"
 		}
 
-		# Clear the file 
-		> scaling1Excite.dat
-
 		# Fixed settings
-		minVal=3
+		minVal=10
 		maxVal=24
 		repeats=100
+
+		# Clear the files
+		> scalingSites90.dat
+		> scalingSites95.dat
+		> scalingSites97.dat
 
 		for sites in $(seq $minVal $maxVal)
 		do
@@ -256,7 +258,19 @@ do
 				bulk="$bulk$(chr $i)$(chr $j)5000"
 			done
 			
-			echo "running for $sites sites with 1 excitation"
+			echo "running for $sites sites with 1 excitation to 90%"
+			braket="<A|$(chr $endValPlus)>"
+			echo \"$braket$bulk\"
+			total=""
+			for i in $(seq 1 $repeats)
+			do
+				attempt=$(source $0 -T -F 90 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total="$total $attempt"
+			done
+			echo $sites $total >> scalingSites90.dat
+
+			echo "running for $sites sites with 1 excitation to 95%"
 			braket="<A|$(chr $endValPlus)>"
 			echo \"$braket$bulk\"
 			total=""
@@ -266,7 +280,19 @@ do
 				echo " - repeat $i took $attempt seconds"
 				total="$total $attempt"
 			done
-			echo $sites $total >> scaling1Excite.dat
+			echo $sites $total >> scalingSites95.dat
+
+			echo "running for $sites sites with 1 excitation to 97%"
+			braket="<A|$(chr $endValPlus)>"
+			echo \"$braket$bulk\"
+			total=""
+			for i in $(seq 1 $repeats)
+			do
+				attempt=$(source $0 -T -F 97 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total="$total $attempt"
+			done
+			echo $sites $total >> scalingSites97.dat
 
 		done
 
