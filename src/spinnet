@@ -233,9 +233,9 @@ do
 		}
 
 		# Fixed settings
-		minVal=10
+		minVal=3
 		maxVal=24
-		repeats=100
+		repeats=400
 
 		# Clear the files
 		> scalingSites90.dat

@@ -64,74 +64,54 @@ for vals in times97:
     avgs97.append(mean)
     errors97.append(err)
 
-# Plot each line
-plt.plot(numSites, avgs90, "r^", ms=10, lw=2, label="90%")
-plt.errorbar(numSites, avgs90, yerr=errors90, fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
-plt.plot(numSites, avgs95, "g^", ms=10, lw=2, label="95%")
-plt.errorbar(numSites, avgs95, yerr=errors95, fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
-plt.plot(numSites, avgs97, "b^", ms=10, lw=2, label="97%")
-plt.errorbar(numSites, avgs97, yerr=errors97, fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
-
+# Params
+start = 13
+fittingStart = 13
 rounding = 5
 
-# Linear regression
-# start = 10
-# def f1(x, a, b):
-    # return a*x+b
-# coef, o = curve_fit(f1, numSites[start:], avgs[start:])
-# rsquared = 1 - (np.sum((np.array(avgs[start:]) - f1(np.array(numSites[start:]), *coef))**2) / np.sum((avgs[start:] - np.mean(avgs[start:]))**2))
-# linear = ("y = " + '{0:.2f}'.format(round(coef[0],2)) + r"$x$" + " " + '{0:+.2f}'.format(round(coef[1],2)) + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-# plt.plot(numSites[start:], f1(np.array(numSites[start:]), coef[0], coef[1]), '-r', label=linear)
-
-# Quadratic regression 1
-# start = 0
-# end = 7
-# def f2(x, a, b):
-    # return a*(x**b)
-# coef, o = curve_fit(f2, numSites[start:end], avgs[start:end])
-# rsquared = 1 - (np.sum((np.array(avgs[start:end]) - f2(np.array(numSites[start:end]), *coef))**2) / np.sum((avgs[start:end] - np.mean(avgs[start:end]))**2))
-# quadratic = ("y = " + '{0:.5f}'.format(round(coef[0],rounding)) + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-# plt.plot(numSites[start:end], f2(np.array(numSites[start:end]), coef[0], coef[1]), '-b', label=quadratic)
+# Plot each line
+plt.plot(numSites[start:], avgs90[start:], "r^", ms=10, lw=2, label="90%")
+plt.errorbar(numSites[start:], avgs90[start:], yerr=errors90[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
+plt.plot(numSites[start:], avgs95[start:], "g^", ms=10, lw=2, label="95%")
+plt.errorbar(numSites[start:], avgs95[start:], yerr=errors95[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
+plt.plot(numSites[start:], avgs97[start:], "b^", ms=10, lw=2, label="97%")
+plt.errorbar(numSites[start:], avgs97[start:], yerr=errors97[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
 
 # Quadratic regression 2
-start = 0
 end = len(numSites)
 def f2(x, a, b):
     return a*(x**b)
-coef, o = curve_fit(f2, numSites[start:end], avgs90[start:end], sigma=errors90)
-rsquared = 1 - (np.sum((np.array(avgs90[start:end]) - f2(np.array(numSites[start:end]), *coef))**2) / np.sum((avgs90[start:end] - np.mean(avgs90[start:end]))**2))
-quadratic = ("y = " + '{0:.5f}'.format(round(coef[0],rounding)) + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[start:end], f2(np.array(numSites[start:end]), coef[0], coef[1]), '-r', label=quadratic)
+coef, o = curve_fit(f2, numSites[fittingStart:end], avgs90[fittingStart:end])
+rsquared = 1 - (np.sum((np.array(avgs90[fittingStart:end]) - f2(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs90[fittingStart:end] - np.mean(avgs90[fittingStart:end]))**2))
+quadratic = ("y = " + '{0:.2E}'.format(coef[0]) + " " + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[fittingStart:end], f2(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-r', label=quadratic)
 
 # Quadratic regression 2
-start = 0
 end = len(numSites)
 def f2(x, a, b):
     return a*(x**b)
-coef, o = curve_fit(f2, numSites[start:end], avgs95[start:end], sigma=errors95)
-rsquared = 1 - (np.sum((np.array(avgs95[start:end]) - f2(np.array(numSites[start:end]), *coef))**2) / np.sum((avgs95[start:end] - np.mean(avgs95[start:end]))**2))
-quadratic = ("y = " + '{0:.5f}'.format(round(coef[0],rounding)) + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[start:end], f2(np.array(numSites[start:end]), coef[0], coef[1]), '-g', label=quadratic)
+coef, o = curve_fit(f2, numSites[fittingStart:end], avgs95[fittingStart:end])
+rsquared = 1 - (np.sum((np.array(avgs95[fittingStart:end]) - f2(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs95[fittingStart:end] - np.mean(avgs95[fittingStart:end]))**2))
+quadratic = ("y = " + '{0:.2E}'.format(coef[0]) + " " + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[fittingStart:end], f2(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-g', label=quadratic)
 
 # Quadratic regression 2
-start = 0
 end = len(numSites)
 def f2(x, a, b):
     return a*(x**b)
-coef, o = curve_fit(f2, numSites[start:end], avgs97[start:end], sigma=errors97)
-rsquared = 1 - (np.sum((np.array(avgs97[start:end]) - f2(np.array(numSites[start:end]), *coef))**2) / np.sum((avgs97[start:end] - np.mean(avgs97[start:end]))**2))
-quadratic = ("y = " + '{0:.5f}'.format(round(coef[0],rounding)) + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[start:end], f2(np.array(numSites[start:end]), coef[0], coef[1]), '-b', label=quadratic)
+coef, o = curve_fit(f2, numSites[fittingStart:end], avgs97[fittingStart:end])
+rsquared = 1 - (np.sum((np.array(avgs97[fittingStart:end]) - f2(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs97[fittingStart:end] - np.mean(avgs97[fittingStart:end]))**2))
+quadratic = ("y = " + '{0:.2E}'.format(coef[0]) + " " + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[fittingStart:end], f2(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-b', label=quadratic)
 
 # Exponential regression
-start = 0
 end = len(numSites)
 def f3(x, a, b):
     return b*np.exp(a*x)
-coef, o = curve_fit(f3, numSites[start:end], avgs97[start:end], sigma=errors97)
-rsquared = 1 - (np.sum((np.array(avgs97[start:end]) - f3(np.array(numSites[start:end]), *coef))**2) / np.sum((avgs97[start:end] - np.mean(avgs97[start:end]))**2))
-expo = ("y = " + '{0:.2f}'.format(round(np.exp(coef[1]),2)) + " " + r"$e^{"+ '{0:.2f}'.format(round(coef[0],2)) + r"x}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[start:end], f3(np.array(numSites[start:end]), coef[0], coef[1]), '-k', label=expo)
+coef, o = curve_fit(f3, numSites[fittingStart:end], avgs97[fittingStart:end])
+rsquared = 1 - (np.sum((np.array(avgs97[fittingStart:end]) - f3(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs97[fittingStart:end] - np.mean(avgs97[fittingStart:end]))**2))
+expo = ("y = " + '{0:.2E}'.format(coef[1]) + " " + r"$e^{"+ '{0:.2f}'.format(coef[0]) + r"x}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-k', label=expo)
 
 # Add inset log plot 
 # ax2 = ax1.inset_axes([0.20, 0.4, 0.25, 0.25])
@@ -149,7 +129,7 @@ plt.ylabel("", fontsize=20, color='black')
 plt.grid(True)
 ax1.set_xlabel("spins in linear chain", labelpad=10)
 ax1.set_ylabel("time to optimise [s]", labelpad=20)
-plt.xlim(min(numSites)-1, max(numSites)+1)
+plt.xlim(min(numSites[start:])-1, max(numSites[start:])+1)
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 plt.legend(prop={'size': 15})
 
@@ -167,7 +147,7 @@ plt.ylabel("", fontsize=20, color='black')
 plt.grid(True)
 ax1.set_xlabel("spins in linear chain", labelpad=10)
 ax1.set_ylabel("time to optimise [s]", labelpad=20)
-plt.xlim(min(numSites)-1, max(numSites)+1)
+plt.xlim(min(numSites[start:])-1, max(numSites[start:])+1)
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 plt.legend(prop={'size': 15})
 ax1.set_xscale("log")
