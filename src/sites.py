@@ -65,8 +65,8 @@ for vals in times97:
     errors97.append(err)
 
 # Params
-start = 13
-fittingStart = 13
+start = 8
+fittingStart = 8
 rounding = 5
 
 # Plot each line

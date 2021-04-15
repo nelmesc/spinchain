@@ -233,8 +233,8 @@ do
 		}
 
 		# Fixed settings
-		minVal=3
-		maxVal=24
+		minVal=24
+		maxVal=30
 		repeats=400
 
 		# Clear the files
@@ -257,47 +257,47 @@ do
 				j=$(echo "$i+1" | bc)
 				bulk="$bulk$(chr $i)$(chr $j)5000"
 			done
-			
-			echo "running for $sites sites with 1 excitation to 90%"
-			braket="<A|$(chr $endValPlus)>"
-			echo \"$braket$bulk\"
-			total=""
-			for i in $(seq 1 $repeats)
-			do
-				attempt=$(source $0 -T -F 90 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
-				echo " - repeat $i took $attempt seconds"
-				total="$total $attempt"
-			done
-			echo $sites $total >> scalingSites90.dat
 
-			echo "running for $sites sites with 1 excitation to 95%"
-			braket="<A|$(chr $endValPlus)>"
+			# Work for more than 24 TODO
 			echo \"$braket$bulk\"
-			total=""
-			for i in $(seq 1 $repeats)
-			do
-				attempt=$(source $0 -T -F 95 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
-				echo " - repeat $i took $attempt seconds"
-				total="$total $attempt"
-			done
-			echo $sites $total >> scalingSites95.dat
 
-			echo "running for $sites sites with 1 excitation to 97%"
-			braket="<A|$(chr $endValPlus)>"
-			echo \"$braket$bulk\"
-			total=""
-			for i in $(seq 1 $repeats)
-			do
-				attempt=$(source $0 -T -F 97 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
-				echo " - repeat $i took $attempt seconds"
-				total="$total $attempt"
-			done
-			echo $sites $total >> scalingSites97.dat
+			#echo "running for $sites sites with 1 excitation to 90%"
+			#braket="<A|$(chr $endValPlus)>"
+			#total=""
+			#for i in $(seq 1 $repeats)
+			#do
+				#attempt=$(source $0 -T -F 90 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				#echo " - repeat $i took $attempt seconds"
+				#total="$total $attempt"
+			#done
+			#echo $sites $total >> scalingSites90.dat
+
+			#echo "running for $sites sites with 1 excitation to 95%"
+			#braket="<A|$(chr $endValPlus)>"
+			#total=""
+			#for i in $(seq 1 $repeats)
+			#do
+				#attempt=$(source $0 -T -F 95 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				#echo " - repeat $i took $attempt seconds"
+				#total="$total $attempt"
+			#done
+			#echo $sites $total >> scalingSites95.dat
+
+			#echo "running for $sites sites with 1 excitation to 97%"
+			#braket="<A|$(chr $endValPlus)>"
+			#total=""
+			#for i in $(seq 1 $repeats)
+			#do
+				#attempt=$(source $0 -T -F 97 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				#echo " - repeat $i took $attempt seconds"
+				#total="$total $attempt"
+			#done
+			#echo $sites $total >> scalingSites97.dat
 
 		done
 
 		# Run the matplotlib script 
-		python3 $parent_path/sites.py
+		#python3 $parent_path/sites.py
 
 		exit 1
 
