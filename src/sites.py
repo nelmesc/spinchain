@@ -7,6 +7,11 @@ from scipy.optimize import curve_fit
 from matplotlib.ticker import MaxNLocator
 import math
 
+# Params
+start = 10
+fittingStart = 10
+rounding = 5
+
 # Set up the figure
 fig = plt.figure(figsize=(10,8))
 
@@ -64,11 +69,6 @@ for vals in times97:
     avgs97.append(mean)
     errors97.append(err)
 
-# Params
-start = 8
-fittingStart = 8
-rounding = 5
-
 # Plot each line
 plt.plot(numSites[start:], avgs90[start:], "r^", ms=10, lw=2, label="90%")
 plt.errorbar(numSites[start:], avgs90[start:], yerr=errors90[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
@@ -77,47 +77,47 @@ plt.errorbar(numSites[start:], avgs95[start:], yerr=errors95[start:], fmt="none"
 plt.plot(numSites[start:], avgs97[start:], "b^", ms=10, lw=2, label="97%")
 plt.errorbar(numSites[start:], avgs97[start:], yerr=errors97[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
 
-# Quadratic regression 2
-end = len(numSites)
-def f2(x, a, b):
-    return a*(x**b)
-coef, o = curve_fit(f2, numSites[fittingStart:end], avgs90[fittingStart:end])
-rsquared = 1 - (np.sum((np.array(avgs90[fittingStart:end]) - f2(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs90[fittingStart:end] - np.mean(avgs90[fittingStart:end]))**2))
-quadratic = ("y = " + '{0:.2E}'.format(coef[0]) + " " + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[fittingStart:end], f2(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-r', label=quadratic)
+# Add inset log plot 
+ax2 = ax1.inset_axes([0.10, 0.30, 0.45, 0.35])
+ax2.plot(numSites[start:], avgs90[start:], "r^", ms=10, lw=2, label="90%")
+ax2.errorbar(numSites[start:], avgs90[start:], yerr=errors90[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
+ax2.plot(numSites[start:], avgs95[start:], "g^", ms=10, lw=2, label="95%")
+ax2.errorbar(numSites[start:], avgs95[start:], yerr=errors95[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
+ax2.plot(numSites[start:], avgs97[start:], "b^", ms=10, lw=2, label="97%")
+ax2.errorbar(numSites[start:], avgs97[start:], yerr=errors97[start:], fmt="none", color='grey', elinewidth=2,capthick=3,capsize=7)
+ax2.set_yscale("log")
+ax2.tick_params(axis='y', pad=10, labelsize=15)
+ax2.tick_params(axis='x', pad=10, labelsize=15)
 
-# Quadratic regression 2
+# Exponential regression for 90%
 end = len(numSites)
-def f2(x, a, b):
-    return a*(x**b)
-coef, o = curve_fit(f2, numSites[fittingStart:end], avgs95[fittingStart:end])
-rsquared = 1 - (np.sum((np.array(avgs95[fittingStart:end]) - f2(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs95[fittingStart:end] - np.mean(avgs95[fittingStart:end]))**2))
-quadratic = ("y = " + '{0:.2E}'.format(coef[0]) + " " + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[fittingStart:end], f2(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-g', label=quadratic)
+def f3(x, a, b):
+    return b*np.exp(a*x)
+coef, o = curve_fit(f3, numSites[fittingStart:end], avgs90[fittingStart:end])
+rsquared = 1 - (np.sum((np.array(avgs90[fittingStart:end]) - f3(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs90[fittingStart:end] - np.mean(avgs90[fittingStart:end]))**2))
+expo = ("y = " + '{0:.2E}'.format(coef[1]) + " " + r"$e^{"+ '{0:.2f}'.format(coef[0]) + r"x}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '--r', label=expo)
+ax2.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '--r', label=expo)
 
-# Quadratic regression 2
+# Exponential regression for 95%
 end = len(numSites)
-def f2(x, a, b):
-    return a*(x**b)
-coef, o = curve_fit(f2, numSites[fittingStart:end], avgs97[fittingStart:end])
-rsquared = 1 - (np.sum((np.array(avgs97[fittingStart:end]) - f2(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs97[fittingStart:end] - np.mean(avgs97[fittingStart:end]))**2))
-quadratic = ("y = " + '{0:.2E}'.format(coef[0]) + " " + r"$x^{" + '{0:.5f}'.format(round(coef[1],rounding)) + "}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[fittingStart:end], f2(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-b', label=quadratic)
+def f3(x, a, b):
+    return b*np.exp(a*x)
+coef, o = curve_fit(f3, numSites[fittingStart:end], avgs95[fittingStart:end])
+rsquared = 1 - (np.sum((np.array(avgs95[fittingStart:end]) - f3(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs95[fittingStart:end] - np.mean(avgs95[fittingStart:end]))**2))
+expo = ("y = " + '{0:.2E}'.format(coef[1]) + " " + r"$e^{"+ '{0:.2f}'.format(coef[0]) + r"x}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
+plt.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '--g', label=expo)
+ax2.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '--g', label=expo)
 
-# Exponential regression
+# Exponential regression for 97%
 end = len(numSites)
 def f3(x, a, b):
     return b*np.exp(a*x)
 coef, o = curve_fit(f3, numSites[fittingStart:end], avgs97[fittingStart:end])
 rsquared = 1 - (np.sum((np.array(avgs97[fittingStart:end]) - f3(np.array(numSites[fittingStart:end]), *coef))**2) / np.sum((avgs97[fittingStart:end] - np.mean(avgs97[fittingStart:end]))**2))
 expo = ("y = " + '{0:.2E}'.format(coef[1]) + " " + r"$e^{"+ '{0:.2f}'.format(coef[0]) + r"x}$" + "    $R^2=" + str(round(rsquared, rounding)) + "$")
-plt.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '-k', label=expo)
-
-# Add inset log plot 
-# ax2 = ax1.inset_axes([0.20, 0.4, 0.25, 0.25])
-# ax2.plot(numSites[start:], avgs[start:], "^g")
-# ax2.plot(numSites[start:], y[start:], "-k")
-# ax2.set_yscale("log")
+plt.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '--b', label=expo)
+ax2.plot(numSites[fittingStart:end], f3(np.array(numSites[fittingStart:end]), coef[0], coef[1]), '--b', label=expo)
 
 # Set the size of the axis ticks
 ax1.tick_params(axis='y', pad=10, labelsize=20)
@@ -150,7 +150,6 @@ ax1.set_ylabel("time to optimise [s]", labelpad=20)
 plt.xlim(min(numSites[start:])-1, max(numSites[start:])+1)
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
 plt.legend(prop={'size': 15})
-ax1.set_xscale("log")
 ax1.set_yscale("log")
 plt.tight_layout()
 plt.gcf().subplots_adjust(left=0.15)

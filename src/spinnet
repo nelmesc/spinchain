@@ -229,12 +229,19 @@ do
 		# Function which returns the character from an asii value
 		chr() {
 		  [ "$1" -lt 256 ] || return 1
-		  printf "\\$(printf '%03o' "$1")"
+		  if [ "$1" -gt 90 ] 
+		  then
+			  new=$(echo "$1+6" | bc)
+			  printf "\\$(printf '%03o' "$new")"
+		  else
+			  printf "\\$(printf '%03o' "$1")"
+		  fi
 		}
 
 		# Fixed settings
-		minVal=24
-		maxVal=30
+		minVal=13
+		maxVal=32
+		skip=1
 		repeats=400
 
 		# Clear the files
@@ -242,15 +249,17 @@ do
 		> scalingSites95.dat
 		> scalingSites97.dat
 
-		for sites in $(seq $minVal $maxVal)
+		for sites in $(seq $minVal $skip $maxVal)
 		do
 
+			# The ASCII values of the start and end letters
 			startVal=65
 			endVal=$(echo "$startVal+$sites" | bc)
 			endValPlus=$(echo "$startVal+$sites+1" | bc)
 			startValPlus=$(echo "$startVal+1" | bc)
 			middleVal=$(echo "scale=0;($startVal+$endVal)/2" | bc)
 
+			# Generate the bulk genome
 			bulk=""
 			for i in $(seq $startVal $endVal)
 			do
@@ -258,46 +267,50 @@ do
 				bulk="$bulk$(chr $i)$(chr $j)5000"
 			done
 
-			# Work for more than 24 TODO
+			# Can't have i's in the bulk of genome
+			bulk=$(echo "$bulk" | tr i %)
+
+			# Generate the starting braket
+			braket="<A|$(chr $endValPlus)>"
 			echo \"$braket$bulk\"
 
-			#echo "running for $sites sites with 1 excitation to 90%"
-			#braket="<A|$(chr $endValPlus)>"
-			#total=""
-			#for i in $(seq 1 $repeats)
-			#do
-				#attempt=$(source $0 -T -F 90 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
-				#echo " - repeat $i took $attempt seconds"
-				#total="$total $attempt"
-			#done
-			#echo $sites $total >> scalingSites90.dat
+			# Repeats for 90%
+			echo "running for $sites sites to 90%"
+			total=""
+			for i in $(seq 1 $repeats)
+			do
+				attempt=$(source $0 -T -F 90 -w $maxVal -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total="$total $attempt"
+			done
+			echo $sites $total >> scalingSites90.dat
 
-			#echo "running for $sites sites with 1 excitation to 95%"
-			#braket="<A|$(chr $endValPlus)>"
-			#total=""
-			#for i in $(seq 1 $repeats)
-			#do
-				#attempt=$(source $0 -T -F 95 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
-				#echo " - repeat $i took $attempt seconds"
-				#total="$total $attempt"
-			#done
-			#echo $sites $total >> scalingSites95.dat
+			# Repeats for 95%
+			echo "running for $sites sites to 95%"
+			total=""
+			for i in $(seq 1 $repeats)
+			do
+				attempt=$(source $0 -T -F 95 -w $maxVal -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total="$total $attempt"
+			done
+			echo $sites $total >> scalingSites95.dat
 
-			#echo "running for $sites sites with 1 excitation to 97%"
-			#braket="<A|$(chr $endValPlus)>"
-			#total=""
-			#for i in $(seq 1 $repeats)
-			#do
-				#attempt=$(source $0 -T -F 97 -w 30 -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
-				#echo " - repeat $i took $attempt seconds"
-				#total="$total $attempt"
-			#done
-			#echo $sites $total >> scalingSites97.dat
+			# Repeats for 97%
+			echo "running for $sites sites to 97%"
+			total=""
+			for i in $(seq 1 $repeats)
+			do
+				attempt=$(source $0 -T -F 97 -w $maxVal -m 2000 -M 1 -g 256 -G 1000 "${braket}${bulk}")
+				echo " - repeat $i took $attempt seconds"
+				total="$total $attempt"
+			done
+			echo $sites $total >> scalingSites97.dat
 
 		done
 
 		# Run the matplotlib script 
-		#python3 $parent_path/sites.py
+		python3 $parent_path/sites.py
 
 		exit 1
 
