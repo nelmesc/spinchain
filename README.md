@@ -13,7 +13,7 @@ The program requires some MPI implementation, such as mpich, along with Python3,
 On Debian based distributions these can be easily installed using:
 
 ```bash
-sudo apt install mpich python3 python3-matplotlib python3-numpy python3-tk python3-pil make
+sudo apt install mpich gfortran python3 liblapack-dev libblas-dev python3-tk libopenblas-dev python3-matplotlib python3-numpy python3-pil make
 ```
 
 To compile this software use the make command in the directory containing the makefile, creating a "bin" folder containing binaries:
