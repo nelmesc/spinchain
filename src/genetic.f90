@@ -1,6 +1,6 @@
 module genetic
 
-    include 'mpif.h'
+    use mpi
 
 contains 
 
