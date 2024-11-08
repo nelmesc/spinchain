@@ -32,11 +32,14 @@ logical, parameter :: squared = .false.
 !*Define couplings scheme*!:
 !* Check one *!
 logical, parameter :: uniform = .false.
-logical, parameter :: pst = .true.
+logical, parameter :: pst = .false.
 logical, parameter :: ssh_a = .false.
 logical, parameter :: ssh_b = .false.
 logical, parameter :: abc = .false.
 logical, parameter :: kitaev = .false.
+logical, parameter :: ballistic = .true.
+!*If using ballistic give one-sided couplings*
+real(kind=dbl) , dimension(1) :: ballistic_coupling = (/0.5542/) 
 
 !*You want to calculate dynamical figures?*!:
 logical :: dynamics = .true. !calculation of dynamics
@@ -112,9 +115,9 @@ real(kind=dbl)            :: time_scale               = -0.001_dbl
 !!Basic characteristics of the system *
 !**************************************
 
-integer            :: N = 7            ! Size of the system
+integer            :: N = 50            ! Size of the system
 integer            :: exno = 1         ! Total number of excitations
-integer, parameter :: branches = 5     ! Number of branches, if linear set to 1.
+integer, parameter :: branches = 1     ! Number of branches, if linear set to 1.
 
 ! The initial/target excitation vectors and their sizes
 ! GO TO BOTTOM TO DEFINE THESE
@@ -132,7 +135,7 @@ integer, dimension(:,:,:), allocatable         :: finalVectorFull
 !!Coupling parameters *
 !**********************
 
-real(kind=dbl), parameter :: J_max = 1.0    !Maximum coupling in the middle
+real(kind=dbl), parameter :: J_max = 1    !Maximum coupling in the middle
                                             !for PST. Used also when uniform
 real(kind=dbl), parameter :: J_strong = 1.0 !Strong versus weak coupling for
 real(kind=dbl), parameter :: J_weak = 0.1   !SSH-like schemes.
@@ -155,8 +158,8 @@ real(kind=dbl), parameter :: error=0.0001_dbl !allowed error for integration met
 !!Dynamics parameters *
 !**********************
 
-integer, parameter :: steps = 100
-real(kind=dbl) :: totalTime = 20 !total time for the dynamics
+integer, parameter :: steps = 1000
+real(kind=dbl) :: totalTime = 200 !total time for the dynamics
 real(kind=dbl) :: t_A = 4  !time for single point calculation (set single option)
 
 
@@ -196,12 +199,22 @@ subroutine initialState(initialVec)
     allocate(initialVec(numModes, numI))
     if (allocated(targetVec)) deallocate(targetVec)
     allocate(targetVec(numModes, numF))
+    if (allocated(initialCoeff)) deallocate(initialCoeff)
+    allocate(initialCoeff(numModes, numI))
+    if (allocated(targetCoeff)) deallocate(targetCoeff)
+    allocate(targetCoeff(numModes, numF))
+
 
     ! The initially injected vectors
-    initialVec(1,1) = 2
+    initialVec(1,1) = 1
 
     ! The desired target for fitness/plotting
-    targetVec(1,1) = 1+N
+    targetVec(1,1) = N
+    ! Define initial COEFFICIENTS
+    initialCoeff =  cmplx(1.0_dbl, 0.0_dbl, dbl)
+
+    !Define target coefficients
+    targetCoeff = cmplx(1.0_dbl, 0.0_dbl, dbl)       
 
     !!Keep adding vectors in this fashion and with this same numenclature
     !!Normalisation is done automatically

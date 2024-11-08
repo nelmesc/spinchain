@@ -153,4 +153,17 @@ if (kitaev) then
     enddo
 endif
 
+!Ballistic
+if (ballistic) then
+    do i=1,size(ballistic_coupling)
+      Js(i) = ballistic_coupling(i)
+      Js(N-i) = ballistic_coupling(i)
+    enddo
+    do i=1+size(ballistic_coupling),N-size(ballistic_coupling)-1
+      Js(i) = J_max
+    enddo
+endif
+  
+  
+
 end subroutine
