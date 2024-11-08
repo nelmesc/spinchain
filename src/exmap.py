@@ -20,6 +20,7 @@ def Colormap(ax,lst):
     x, y = intensity.shape
     
     x1 = lst[:,0]
+    x1 = np.append(x1,[lst[-1,0]+lst[-2,0]-lst[-3,0]])
     y1 = range(0,y+1)
     x2,y2 = np.meshgrid(x1,y1)
     
@@ -37,12 +38,19 @@ def Colormap(ax,lst):
     #SET Y-AXIS TICKS AND LABEL
     ax.set_ylim([0,y])
     start, end = ax.get_ylim()
-    ax.yaxis.set_ticks(np.arange(0.5, end+0.5, 1))
+    if y > 20:
+        step_thr = int(end/5)
+    else:
+        step_thr = 1
+    #Consider adapting this to np.linspace for cleaner results
+    ax.yaxis.set_ticks(np.arange(0.5, end+0.5, step_thr))
     labels = [item.get_text() for item in ax.get_yticklabels()]
     i = 0
+    label_iter = 0
     while (i<(len(data[0,1:]))):
-        labels[i]='spin'+str(i+1)
-        i=i+1
+        labels[label_iter]='spin'+str(i)
+        i=i+step_thr
+        label_iter = label_iter + 1
     ax.set_yticklabels(labels,fontsize=20)
 
 Colormap(ax,data)
