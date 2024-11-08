@@ -103,7 +103,7 @@ real(dubp), external :: algor_uniform_random
 
 !logicals
 logical, parameter, dimension(4) :: topology = (/linear,star,lattice,squared/)
-logical, parameter, dimension(6) :: coupling = (/uniform, pst, ssh_a, ssh_b, abc, kitaev/)
+logical, parameter, dimension(7) :: coupling = (/uniform, pst, ssh_a, ssh_b, abc, kitaev, ballistic/)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! START PROGRAM AND WRITE OUTPUT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -191,6 +191,8 @@ if (output .and. .not. use_genetic) then
         tmp = 'SSG - B'
     else if (abc) then
         tmp = 'ABC'
+    else if (ballistic) then
+        tmp = 'BALLISTIC'
     end if
     write(40,204) adjustl(trim(tmp))
 
@@ -241,7 +243,6 @@ if (output .and. .not. use_genetic) then
     write(40,212) adjustl(trim(tmp))
 
 endif
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! INITIAL CHECKS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -304,7 +305,6 @@ STOP 'ERROR: If you want to calculate the maximum EOF over a full window you'&
 endif
 
 !if (output .and. .not. use_genetic) write(*,*) '>> Initial checks'
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! DEFINING BASIS VECTORS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !Calculate number of vectors for each excitation N!/exno!(N-exno)! subspace and the total number
@@ -357,24 +357,21 @@ end do
 if (custom) then
     call get_vector_indices(HT)
 end if
-
 if (.not. custom) call initialState(initialVec)
 if (.not. use_genetic) then
-
     do j=1,numModes
         write(40,"(A,I0,A)") "FOR MODE ", j, ":"
         do i=1,numI
-            write(40,'(A,i3.1)') "  INITIAL INJECTED VECTOR INDEX = ", initialVec(j,i)
+            write(40,'(A,i4.1)') "  INITIAL INJECTED VECTOR INDEX = ", initialVec(j,i)
             write(40,'(A,f6.2,A,f6.2,A)') "  WITH COEFFICIENT = (", real(initialCoeff(j,i)), ", ", aimag(initialCoeff(j,i)), ")"
         enddo
         do i=1,numF
-            write(40,"(A,i3.1)") "  FINAL VECTOR INDEX = ", targetVec(j,i)
+            write(40,"(A,i4.1)") "  FINAL VECTOR INDEX = ", targetVec(j,i)
             write(40,'(A,f6.2,A,f6.2,A)') "  WITH COEFFICIENT = (", real(targetCoeff(j,i)), ", ", aimag(targetCoeff(j,i)), ")"
         enddo
     end do
 
 end if
-
 !Stdout vectors matrix
 if (output .and. .not. use_genetic) then
     200 FORMAT (/A)
@@ -444,7 +441,7 @@ else
     call couplings(Js,len_branch,hub,limits)
 
     !Stdout coupling pattern
-    301 FORMAT ("(spin",I3,")-(spin",I3,") -->",F6.2)
+    301 FORMAT ("(spin",I4,")-(spin",I4,") -->",F6.2)
     if (output .and. .not. use_genetic) then
         write(40,FMT=200) 'COUPLING PATTERN:'
         do i=1,N-1
@@ -608,8 +605,8 @@ enddo
 if (output .and. .not. use_genetic) then
 
     !set formats
-    write(tmp,'(i3.1)') vectorstotal
-    fmt1='(1X,i3.1,1X,'//tmp//'("(",f7.3,f7.3,")"))'
+    write(tmp,'(i4.1)') vectorstotal
+    fmt1='(1X,i4.1,1X,'//tmp//'("(",f7.3,f7.3,")"))'
 
     !print the headins
     !if N is small,
@@ -619,7 +616,7 @@ if (output .and. .not. use_genetic) then
     if ((N.le.20).and.(exno.eq.1)) then
     fmt2='(6X,'
         do i=1,vectorstotal
-            write(tmp,'(i3.1)') i
+            write(tmp,'(i4.1)') i
             fmt2=trim(fmt2)//'"Eigenvector'//trim(adjustl(tmp))//':",3X,'
         enddo
 
