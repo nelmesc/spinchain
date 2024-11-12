@@ -48,7 +48,7 @@ def Colormap(ax,lst):
     i = 0
     label_iter = 0
     while (i<(len(data[0,1:]))):
-        labels[label_iter]='spin'+str(i)
+        labels[label_iter]='spin'+str(i+1)
         i=i+step_thr
         label_iter = label_iter + 1
     ax.set_yticklabels(labels,fontsize=20)

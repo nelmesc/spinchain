@@ -14,6 +14,7 @@ integer,                    parameter :: max_string_size   = 1000
 integer                               :: coupling_digits   = 4
 character(max_string_size)            :: custom_string     = &
   & "<A|C>AB500BC500#00"
+character(1)                          :: ball_direct_char = ""
 
 ! If the program should give a time estimate and then stop
 logical :: stop_after_time = .false.
@@ -158,8 +159,8 @@ real(kind=dbl), parameter :: error=0.0001_dbl !allowed error for integration met
 !!Dynamics parameters *
 !**********************
 
-integer, parameter :: steps = 1000
-real(kind=dbl) :: totalTime = 200 !total time for the dynamics
+integer, parameter :: steps = 500
+real(kind=dbl) :: totalTime = 100 !total time for the dynamics
 real(kind=dbl) :: t_A = 4  !time for single point calculation (set single option)
 
 

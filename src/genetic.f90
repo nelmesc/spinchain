@@ -24,7 +24,7 @@ subroutine solve_genetic()
     real(kind=dbl)             :: init_fit
 
     ! Save any bits removed from the given genome, to be added on after
-    character(max_string_size) :: pos_direct, init_direct
+    character(max_string_size) :: pos_direct, init_direct,  ball_direct
 
     ! The array of different genomes that are evolving
     character(max_string_size), dimension(genomes_per_generation) :: population
@@ -99,7 +99,7 @@ subroutine solve_genetic()
     end if
 
     ! Get rid of any <> or # in the genome string
-    call process_directives(custom_string, init_direct, pos_direct)
+    call process_directives(custom_string, init_direct, pos_direct,ball_direct)
 
     ! If using multiple nodes and not told to force
     if (.not. force_fitness .and. numModes > 1) then

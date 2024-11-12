@@ -31,6 +31,9 @@ subroutine couplings_custom(Js2D, N_local, string)
     character(20) :: val_string
     integer :: val_count
 
+    ! For temporarily storing the next largest power of 10 of couplings
+    integer :: next_power
+
     ! Loop counters
     integer :: i, j
 
@@ -51,8 +54,20 @@ subroutine couplings_custom(Js2D, N_local, string)
 
         ! Get the indices of the characters
         do j = 1, size(uniqueChars, 1)
-            if (uniqueChars(j) == string(i:i)) a_index = j
-            if (uniqueChars(j) == string(i+1:i+1)) b_index = j
+            if (uniqueChars(j) == string(i:i)) then
+                if (uniqueChars(j) >= ball_direct_char) then
+                    a_index = (N_local-size(uniqueChars, 1)) + j
+                else
+                    a_index = j
+                end if
+            end if
+            if (uniqueChars(j) == string(i+1:i+1)) then
+                if (uniqueChars(j) >= ball_direct_char) then
+                    b_index = (N_local-size(uniqueChars, 1)) + j
+                else
+                    b_index = j
+                end if
+            end if
         end do
 
         ! Get the coupling value
@@ -69,15 +84,22 @@ subroutine couplings_custom(Js2D, N_local, string)
 
     end do
 
-    ! Normalise
-    Js2D = Js2D / maxval(Js2D)
-
     ! Go through the diagonals, if any are zero then set to default
+    ! For Ballistic, set off-diagonals to 1, depending on N-nearest neighbours
+    next_power = 10**(coupling_digits)
     do i = 1, N_local
         if (abs(Js2D(i,i)) < tiny(0.0_dbl)) then
-            Js2D(i,i) = 1.0_dbl
+            Js2D(i,i) = 0.0_dbl
+        end if
+        !Make this if ballistic set and works on all up to r-range interaction
+        if (abs(Js2D(i,i+1)) .lt. tiny(0.0_dbl) .and. .True. .and. i /= N_local) then
+            Js2D(i,i+1) = next_power
+            Js2D(i+1,i) = next_power
         end if
     end do
+
+    ! Normalise
+    Js2D = Js2D / maxval(Js2D)
 
 end subroutine
 
@@ -201,7 +223,7 @@ end subroutine
 !-------------------------------------------------------------------------!
 ! Written by Luke Mortimer October 2019                                   !
 !=========================================================================!
-subroutine process_directives(string, init_direct, pos_direct)
+subroutine process_directives(string, init_direct, pos_direct,ball_direct)
 
     use constants
     use parameters
@@ -210,7 +232,7 @@ subroutine process_directives(string, init_direct, pos_direct)
     character(max_string_size), intent(inout) :: string
 
     ! If present, return the removed directives
-    character(max_string_size), intent(inout), optional :: init_direct, pos_direct
+    character(max_string_size), intent(inout), optional :: init_direct, pos_direct, ball_direct
 
     ! The various temporary strings used for processing the directives
     character(max_string_size) :: substring, time_direct_string
@@ -225,6 +247,9 @@ subroutine process_directives(string, init_direct, pos_direct)
     ! Temp variable storing where the arrow (->) is in the substring
     integer :: pipe_index
 
+    !Temp variable storing uniform coupled chain length
+    integer :: ball_len
+
     ! Loop counters
     integer :: i, j, k, mode_counter
 
@@ -238,6 +263,7 @@ subroutine process_directives(string, init_direct, pos_direct)
     ! If present, reset the return vals
     if (present(init_direct)) init_direct = ""
     if (present(pos_direct)) pos_direct = ""
+    if (present(ball_direct)) ball_direct = ""
 
     ! Ignore the positional directive
     i = index(string, "#")
@@ -246,7 +272,20 @@ subroutine process_directives(string, init_direct, pos_direct)
         string = trim(string(:i-1))
     end if
 
-    ! Count the number of different exicitation/target pairs
+    !Ignore the ballistic directive 
+    ! At present this only works for a single uniform regime with non uniform endpoints
+    ball_len = 0
+    i = index(string, "...")
+    j = index(string, "...", back=.True.)+2
+    if (i > 0) then
+        if(present(ball_direct)) then
+            ball_direct = string(i:j)
+            ball_direct_char = string(j+1:j+1)
+            string = trim(string(:i-1)) // trim(string(j+1:))
+        end if
+    end if
+
+    ! Count the number of different excitation/target pairs
     numModes = 0
     mode_counter = 0
     do i = 1, len_trim(string)
@@ -344,6 +383,10 @@ subroutine process_directives(string, init_direct, pos_direct)
 
     ! Set N depending on the number of unique chars
     N = size(map, 1)
+    if (ball_direct /= "") then
+        ball_len = chars_to_int(trim(ball_direct(4:len_trim(ball_direct)-3)))
+        N = N + ball_len
+    end if
 
     ! Get the number of initial and target exicitations
     numI = 1
@@ -409,8 +452,13 @@ subroutine process_directives(string, init_direct, pos_direct)
                 ! Find that char in the char to state map
                 do k = 1, N
                     if (map(k) == from_string(i)(j:j)) then
-                        initVectorFull(i, numICount, k) = 1
-                        exit
+                        if (map(k) >= ball_direct_char) then
+                            initVectorFull(i, numICount, k+ball_len) = 1
+                            exit
+                        else
+                            initVectorFull(i, numICount, k) = 1
+                            exit
+                        end if
                     end if
                 end do
 
@@ -458,8 +506,13 @@ subroutine process_directives(string, init_direct, pos_direct)
                 ! Find that char in the char to state map
                 do k = 1, N
                     if (map(k) == to_string(i)(j:j)) then
-                        finalVectorFull(i, numFCount, k) = 1
-                        exit
+                        if (map(k) >= ball_direct_char) then
+                            finalVectorFull(i, numFCount, k+ball_len) = 1
+                            exit
+                        else
+                            finalVectorFull(i, numFCount, k) = 1
+                            exit
+                        end if
                     end if
                 end do
 
