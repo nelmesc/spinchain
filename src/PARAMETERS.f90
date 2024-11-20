@@ -94,6 +94,9 @@ logical,        parameter :: use_alternating          = .true.
 ! Should a bogo method be used for testing?
 logical :: use_bogo = .false.
 
+!Should the genome be mirror symmetric? Only for linear chains
+logical                   :: mirror_symmetric         = .true.
+
 ! Should the fitness function be linear with fidelity?
 logical                   :: linear_fitness           = .false.
 logical                   :: force_fitness            = .false.

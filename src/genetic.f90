@@ -48,7 +48,7 @@ subroutine solve_genetic()
     integer, parameter :: geneticFile = 35, animationFile = 36
 
     ! Loop counters
-    integer         :: i, j
+    integer         :: i, j, k
 
     ! Which genomes should be used to generate the next child
     integer         :: parent1, parent2
@@ -80,6 +80,15 @@ subroutine solve_genetic()
 
     ! The mapping of chars to node indices
     character, dimension(:), allocatable :: uniqueChars
+
+    ! The number of couplings
+    integer         :: num_couplings
+
+    ! Stores a coupling string
+    character(coupling_digits) :: coupling_str
+
+    ! Temporary location index
+    integer         :: numLoc
 
     ! Hold the change in mutate rate as a real
     real(kind=dbl)  :: mutate_amount_real, mutate_delta
@@ -244,6 +253,17 @@ subroutine solve_genetic()
             call genetic_mutate(population(i))
         end do
 
+        ! If selected, ensure mirror symmetry
+        if (mirror_symmetric) then
+            num_couplings = len_trim(population(i))/(2+coupling_digits)
+            do j = 1,num_couplings/2
+                ! Determine where in the string the digits start
+                numLoc = (2 + coupling_digits)*(j-1) + 3
+                coupling_str = population(i)(numLoc:numLoc+coupling_digits-1)
+                numLoc = (2 + coupling_digits)*(num_couplings-j)+3
+                population(i)(numLoc:numLoc+coupling_digits-1) = coupling_str
+            enddo
+        end if
     end do
 
     ! Sync the population between nodes
@@ -381,7 +401,18 @@ subroutine solve_genetic()
             if (algor_uniform_random() < mutate_chance) then
                 call genetic_mutate(population_new(j))
             end if
-
+            
+            ! If selected, ensure mirror symmetry
+            if (mirror_symmetric) then
+                num_couplings = len_trim(population_new(j))/(2+coupling_digits)
+                do k = 1,num_couplings/2
+                    ! Determine where in the string the digits start
+                    numLoc = (2 + coupling_digits)*(k-1) + 3
+                    coupling_str = population_new(j)(numLoc:numLoc+coupling_digits-1)
+                    numLoc = (2 + coupling_digits)*(num_couplings-k)+3
+                    population_new(j)(numLoc:numLoc+coupling_digits-1) = coupling_str
+                enddo
+            end if
         end do
 
         ! The new generation becomes the main generation
@@ -824,7 +855,7 @@ subroutine genetic_mutate(string)
 
     ! Save the length of the string to prevent further len_trim calls
     length = len_trim(string)
-
+    
     ! How much should the coupling change by? -2, -1, 0, +1, +2
     numDelta = nint(algor_uniform_random() * real(mutate_amount, dbl) * 2.0_dbl)
 
