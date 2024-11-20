@@ -46,6 +46,9 @@ real(kind=dbl) , dimension(1) :: ballistic_coupling = (/0.5542/)
 logical :: dynamics = .true. !calculation of dynamics
 logical :: single = .false.  !single point calculation
 
+!*Is it considering an XY hamiltonian*!
+logical :: XY_tony = .true. !Use the XY model
+
 !*You want to read the initial state from file?*!:
 logical, parameter :: read_state = .false. !read from previous final state
 
@@ -103,7 +106,7 @@ logical                   :: allow_negative           = .false.
 
 ! Max fidelity search range
 real(kind=dbl)            :: min_time                 = 0.0_dbl  
-real(kind=dbl)            :: max_time                 = 20.0_dbl  
+real(kind=dbl)            :: max_time                 = 200.0_dbl  
 
 ! Should time be minimised along with the fidelity?
 logical                   :: minimise_time            = .true.
@@ -116,7 +119,7 @@ real(kind=dbl)            :: time_scale               = -0.001_dbl
 !!Basic characteristics of the system *
 !**************************************
 
-integer            :: N = 50            ! Size of the system
+integer            :: N = 51            ! Size of the system
 integer            :: exno = 1         ! Total number of excitations
 integer, parameter :: branches = 1     ! Number of branches, if linear set to 1.
 
@@ -136,7 +139,7 @@ integer, dimension(:,:,:), allocatable         :: finalVectorFull
 !!Coupling parameters *
 !**********************
 
-real(kind=dbl), parameter :: J_max = 1    !Maximum coupling in the middle
+real(kind=dbl), parameter :: J_max = 1.0    !Maximum coupling in the middle
                                             !for PST. Used also when uniform
 real(kind=dbl), parameter :: J_strong = 1.0 !Strong versus weak coupling for
 real(kind=dbl), parameter :: J_weak = 0.1   !SSH-like schemes.
@@ -159,8 +162,8 @@ real(kind=dbl), parameter :: error=0.0001_dbl !allowed error for integration met
 !!Dynamics parameters *
 !**********************
 
-integer, parameter :: steps = 500
-real(kind=dbl) :: totalTime = 100 !total time for the dynamics
+integer, parameter :: steps = 1000
+real(kind=dbl) :: totalTime = 200 !total time for the dynamics
 real(kind=dbl) :: t_A = 4  !time for single point calculation (set single option)
 
 

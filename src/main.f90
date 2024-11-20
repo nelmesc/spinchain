@@ -423,7 +423,9 @@ if (custom) then
 
     ! Generate the 2D coupling matrix based on the custom string
     call couplings_custom(Js2D, N, custom_string)
-
+    if (XY_tony) then
+        Js2D = Js2D*0.5
+    end if
     ! Output the coupling pattern
     if (output .and. .not. use_genetic) then
         write(40,"()") 
@@ -439,7 +441,9 @@ if (custom) then
 else
 
     call couplings(Js,len_branch,hub,limits)
-
+    if (XY_tony) then
+        Js = Js*0.5
+    end if
     !Stdout coupling pattern
     301 FORMAT ("(spin",I4,")-(spin",I4,") -->",F6.2)
     if (output .and. .not. use_genetic) then
