@@ -30,7 +30,8 @@ def Colormap(ax,lst):
     c.ax.tick_params(labelsize=20)
 
     #SET X-AXIS TICKS AND LABEL
-    ax.set_xlim([0,totaltime])
+    #ax.set_xlim([0,totaltime])
+    ax.set_xlim([x1[0], x1[-2]])
     ax.set_xlabel('$\mathrm{time \cdot J_{max}}$',fontsize=20)
     ax.tick_params(axis='y', labelsize=20)
     ax.tick_params(axis='x', labelsize=20)

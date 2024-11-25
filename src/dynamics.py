@@ -28,11 +28,12 @@ N=int(sys.argv[3])
 #CREATE PLOT
 ax1=plt.subplot()
 
-#DEFINE RANGES
-ax1.set_xlim([0,totaltime])
-ax1.set_ylim([0,1])
-
 x = np.absolute(fidelity[:,0])
+
+#DEFINE RANGES
+#ax1.set_xlim([0,totaltime])
+ax1.set_xlim([x[0],x[-1]])
+ax1.set_ylim([0,1])
 
 # Load the info file and get the initial/final vectors
 init = fidelity[:, 1]*0.0

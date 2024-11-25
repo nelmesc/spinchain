@@ -185,6 +185,7 @@ subroutine solve_genetic()
             write(geneticFile, "(A,f5.3)") "mutate chance          = ", mutate_chance
             write(geneticFile, "(A,I0)")   "intial mutate amount   = ", mutate_amount_initial
             write(geneticFile, "(A,I0)")   "final mutate amount    = ", mutate_amount_final
+            write(geneticFile, "(A,L)")    "enforce mirroring      = ", mirror_symmetric
             write(geneticFile, "(A,L)")    "use linear scaling     = ", linear_fitness
             write(geneticFile, "(A,L)")    "only change energies   = ", energies_only
             write(geneticFile, "(A)") ""
@@ -631,7 +632,7 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
             ! Find the location where the system is closest to the target state
             maxIndex = startIndex-1+maxloc(searchArray(startIndex:endIndex), 1)
             fidelity = searchArray(maxIndex)
-            transferTime = (real(maxIndex, dbl) / real(steps, dbl)) * totalTime
+            transferTime = (real(maxIndex, dbl) / real(steps, dbl)) * (totalTime-startTime) + startTime
 
             ! Get the quality at this point
             quality = 1.0_dbl

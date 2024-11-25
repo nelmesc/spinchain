@@ -166,6 +166,7 @@ real(kind=dbl), parameter :: error=0.0001_dbl !allowed error for integration met
 !**********************
 
 integer, parameter :: steps = 1000
+real(kind=dbl) :: startTime = 0
 real(kind=dbl) :: totalTime = 200 !total time for the dynamics
 real(kind=dbl) :: t_A = 4  !time for single point calculation (set single option)
 

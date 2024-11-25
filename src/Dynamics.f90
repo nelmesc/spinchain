@@ -121,7 +121,9 @@ do i=1,vectorstotal
 enddo
 endif
 
-step_size = totalTime/steps
+
+!step_size = totalTime/steps
+step_size = (totalTime-startTime)/steps
 
 if (.not.read_state) then
     initialtime = 0._dbl
@@ -138,7 +140,9 @@ if (.not. use_genetic) then
     endif
 end if
 
-time = 0._dbl
+!time = 0._dbl
+time = startTime
+
 !main loop for the dynamics
 if (.not.single) then
 
