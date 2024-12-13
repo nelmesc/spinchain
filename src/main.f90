@@ -701,7 +701,6 @@ end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! DYNAMICS: FIDELITY, ENTROPY AND EOF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 if (diagonalisation) then
 
     if (dynamics) then
@@ -745,7 +744,6 @@ end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! PLOTTING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !Writes in a file data needed for plots
 if (.not. use_genetic) then
     open(unit=46,file='info.data',status='unknown')
@@ -763,54 +761,75 @@ if (.not. use_genetic) then
     endif
     write(46,402) adjustl(trim(tmp))
 
-    403 FORMAT ("N=",A)
-    write(tmp,'(i5.4)') N
-    write(46,403) adjustl(trim(tmp))
+    403 FORMAT ("CUSTOM=",L)
+    write(46,403) custom
 
-    404 FORMAT ("VECTORS=",A)
-    write(tmp,'(i5.4)') vectorstotal
+    404 FORMAT ('COUPLINGS="',A)
+    808 FORMAT (A)
+    write(46,404)
+    if (custom) then
+    do j=1,N
+    do i=1,N
+    write(tmp,'(f7.3)') Js2D(j,i)
+    write(46,808) adjustl(trim(tmp))
+    enddo
+    enddo
+    else if (.not. custom) then
+    do j=1,N
+    write(tmp, '(f6.2)') Js(i)
     write(46,404) adjustl(trim(tmp))
+    enddo
+    endif
+    write(46,808) '"'
 
-    405 FORMAT ("TOTALTIME=",A)
-    write(tmp,'(f8.2)') initialtime+totaltime
+    405 FORMAT ("N=",A)
+    write(tmp,'(i5.4)') N
     write(46,405) adjustl(trim(tmp))
 
-    406 FORMAT ("TA=",A)
-    write(tmp,'(f8.2)') t_A
+    406 FORMAT ("VECTORS=",A)
+    write(tmp,'(i5.4)') vectorstotal
     write(46,406) adjustl(trim(tmp))
 
+    407 FORMAT ("TOTALTIME=",A)
+    write(tmp,'(f8.2)') initialtime+totaltime
+    write(46,407) adjustl(trim(tmp))
+
+    408 FORMAT ("TA=",A)
+    write(tmp,'(f8.2)') t_A
+    write(46,408) adjustl(trim(tmp))
+
     do j=1, numModes
-    407 FORMAT ("INITIALVEC=",A)
+    409 FORMAT ("INITIALVEC=",A)
     do i=1,numI
     write(tmp,'(i5.2)') initialVec(j,i)
-    write(46,407) adjustl(trim(tmp))
+    write(46,409) adjustl(trim(tmp))
     enddo
     enddo
 
-    408 FORMAT ("EOF=",L)
-    write(46,408) eof
+    410 FORMAT ("EOF=",L)
+    write(46,410) eof
 
-    409 FORMAT ("SINGLE=",L)
-    write(46,409) single
+    411 FORMAT ("SINGLE=",L)
+    write(46,411) single
 
-    410 FORMAT ("OFFNOISE=",A)
+    412 FORMAT ("OFFNOISE=",A)
     write(tmp,'(f8.2)') E_J
-    write(46,410) adjustl(trim(tmp))
+    write(46,412) adjustl(trim(tmp))
 
-    411 FORMAT ("DIAGNOISE=",A)
+    413 FORMAT ("DIAGNOISE=",A)
     write(tmp,'(f8.2)') E_D
-    write(46,411) adjustl(trim(tmp))
+    write(46,413) adjustl(trim(tmp))
 
-    412 FORMAT ("MAX_EOF=",L)
-    write(46,412) max_eof
+    414 FORMAT ("MAX_EOF=",L)
+    write(46,414) max_eof
 
-    413 FORMAT ("METHOD=",A)
+    415 FORMAT ("METHOD=",A)
     if (integration) then
     tmp = 'INT'
     else if (diagonalisation) then
     tmp = 'DIAG'
     end if
-    write(46,413) adjustl(trim(tmp))
+    write(46,415) adjustl(trim(tmp))
 end if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -844,7 +863,6 @@ if (diagonalisation) then
     if (allocated(work))    deallocate(work)
     if (allocated(iwork))   deallocate(iwork)
 endif
-
 end subroutine
 
 !*********************TO BE REPROGRAMED**********************!

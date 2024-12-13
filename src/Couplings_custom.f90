@@ -83,16 +83,15 @@ subroutine couplings_custom(Js2D, N_local, string)
         Js2D(b_index, a_index) = val
 
     end do
-
     ! Go through the diagonals, if any are zero then set to default
     ! For Ballistic, set off-diagonals to 1, depending on N-nearest neighbours
-    next_power = 10**(coupling_digits)
+    next_power = max_val
     do i = 1, N_local
         if (abs(Js2D(i,i)) < tiny(0.0_dbl)) then
             Js2D(i,i) = 0.0_dbl
         end if
         !Make this if ballistic set and works on all up to r-range interaction
-        if (abs(Js2D(i,i+1)) .lt. tiny(0.0_dbl) .and. .True. .and. i /= N_local) then
+        if (abs(Js2D(i,i+1)) .lt. tiny(0.0_dbl) .and. (ball_direct_char .ne. "") .and. i /= N_local) then
             Js2D(i,i+1) = next_power
             Js2D(i+1,i) = next_power
         end if

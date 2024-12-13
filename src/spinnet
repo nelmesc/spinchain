@@ -427,7 +427,7 @@ if [ -f info.data ]; then
 				python3 $parent_path/python_scripts/maxEOF.py eof.data $REALISATIONS $TOTALTIME $OFFNOISE $DIAGNOISE
 			fi
 		fi
-
+		
 		# Realisations if noise
 		if [ $REALISATIONS -ne 1 ] ;
 		then
@@ -490,9 +490,9 @@ if [ -f info.data ]; then
 				fi
 
 			fi
-
 			python3 $parent_path/dynamics.py $TOTALTIME $INITIALVEC $N
 			python3 $parent_path/exmap.py $TOTALTIME
+			python3 $parent_path/CouplingConfig.py $N $CUSTOM $COUPLINGS 
 
 			#If plots have been created move them to the required folder
 			mkdir -p output/plots
