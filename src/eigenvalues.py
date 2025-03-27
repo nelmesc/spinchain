@@ -13,6 +13,12 @@ import numpy as np
 #LOAD DATA FROM FILE
 data=np.loadtxt('eigenvalues.data',comments='#')
 
+#LOAD SITE PROBABILITIES
+siteprobs = np.loadtxt('probabilities.data',comments='#')
+
+#MODE DISTRIBUTION OF INITIAL STATE
+initialstate = np.max(data)/np.max(siteprobs[0])*siteprobs[0]
+
 #SET SIZE OF THE FIGURE
 fig = plt.figure(figsize=(20,10))
 
@@ -38,7 +44,7 @@ ax.tick_params(axis='x', labelsize=20)
 ax.tick_params(axis='y', labelsize=20)
 
 ax.plot(np.arange(1,totalstates+1),data, color='salmon', lw=2, marker='8')
-
+ax.plot(np.arange(1,totalstates+1),initialstate,color='cornflowerblue',lw=2, marker='8')
 #GENERATE THREE SUBPLOTS TO
 #REPRESENT DIFFERENT REGIONS
 #OF THE SPECTRUM
