@@ -10,7 +10,8 @@
 ! Written by Luke Mortimer October 2019                                   !
 !=========================================================================!
 subroutine couplings_custom(Js2D, N_local, string)
-
+    !For testing
+    use, intrinsic :: ieee_exceptions
     use parameters
     use constants
 
@@ -31,9 +32,6 @@ subroutine couplings_custom(Js2D, N_local, string)
     character(20) :: val_string
     integer :: val_count
 
-    ! For temporarily storing the next largest power of 10 of couplings
-    integer :: next_power
-
     ! Loop counters
     integer :: i, j
 
@@ -42,7 +40,6 @@ subroutine couplings_custom(Js2D, N_local, string)
 
     ! Get the mapping of letters to numbers
     call get_char_map(string, uniqueChars)
-
     ! Iterate over the string
     do i = 1, len_trim(string), 2 + coupling_digits
 
@@ -70,6 +67,7 @@ subroutine couplings_custom(Js2D, N_local, string)
             end if
         end do
 
+        
         ! Get the coupling value
         val = chars_to_int(string(i+2:i+coupling_digits+1))
 
@@ -83,23 +81,32 @@ subroutine couplings_custom(Js2D, N_local, string)
         Js2D(b_index, a_index) = val
 
     end do
-    ! Go through the diagonals, if any are zero then set to default
-    ! For Ballistic, set off-diagonals to 1, depending on N-nearest neighbours
-    next_power = max_val
+    
     do i = 1, N_local
+        
+        ! Go through the diagonals, if any are zero then set to default 
         if (abs(Js2D(i,i)) < tiny(0.0_dbl)) then
             Js2D(i,i) = 0.0_dbl
         end if
-        !Make this if ballistic set and works on all up to r-range interaction
-        if (abs(Js2D(i,i+1)) .lt. tiny(0.0_dbl) .and. (ball_direct_char .ne. "") .and. i /= N_local) then
-            Js2D(i,i+1) = next_power
-            Js2D(i+1,i) = next_power
+        
+        ! If ballistic, Go through diagonals and add the nth range interaction
+        if ((ball_direct_char .ne. "") .and. i /= N_local) then
+            do j=1,size(n_range_couplings)
+            !print*, "i,j", i,j
+                if (i+j .le. N_local) then
+                    !print*,"i,j", i,j
+                    if (abs(Js2D(i,i+j)) .lt. tiny(0.0_dbl)) then
+                        !print*,"i,j", i,j
+                        Js2D(i,i+j) = n_range_couplings(j)
+                        Js2D(i+j,i) = n_range_couplings(j)
+                    end if
+                end if
+            end do
         end if
     end do
-
+    
     ! Normalise
     Js2D = Js2D / maxval(Js2D)
-
 end subroutine
 
 !=========================================================================!
@@ -160,6 +167,63 @@ function chars_to_real(chars)
 end function
 
 !=========================================================================!
+! Sort a string of chars using ASCII values                               !
+!-------------------------------------------------------------------------!
+! Parameters                                                              !
+!   chars       : string of chars to sort                                 !
+!-------------------------------------------------------------------------!
+! Returns an character array                                              !
+!-------------------------------------------------------------------------!
+! Written by Fabien Faria March 2025                                      !
+!=========================================================================!
+
+function sort_chars(chars)
+
+    character, dimension(:), intent(in) :: chars
+    character, dimension(size(chars)):: sort_chars
+    integer, dimension(:), allocatable :: ascii_vals
+    integer :: numChars,tmp
+    integer :: i,j
+
+    numChars = size(chars)
+    if (allocated(ascii_vals)) deallocate(ascii_vals)
+    allocate(ascii_vals(numChars))
+    !Convert string to ascii value
+    do i=1,numChars
+
+        ascii_vals(i) = iachar(chars(i))
+
+    end do
+
+    !Perform bubble sort on ascii values
+    do i=1,numChars
+        do j=1,numChars-1
+
+            if (ascii_vals(j) .gt. ascii_vals(j+1)) then
+                tmp = ascii_vals(j)
+                ascii_vals(j) = ascii_vals(j+1)
+                ascii_vals(j+1) = tmp
+            end if
+
+        end do
+    end do
+
+
+    !Convert ascii values to characters to return string
+    do i=1,numChars
+
+        sort_chars(i) = achar(ascii_vals(i))
+        !print*,sort_chars(i)
+
+    end do
+
+    deallocate(ascii_vals)
+
+end function
+
+
+
+!=========================================================================!
 ! Return an array containing the unique letters in a string               !
 !-------------------------------------------------------------------------!
 ! Parameters                                                              !
@@ -177,8 +241,8 @@ subroutine get_char_map(string, map)
     character(*), intent(in) :: string
     character, dimension(:), allocatable, intent(out) :: map
     character, dimension(max_string_size):: temp_char_map
-    integer :: numUniqueChars
-
+    integer :: numUniqueChars, tmp
+    integer, dimension(:), allocatable :: indexs
     integer :: i, j
     logical :: found
 
@@ -206,6 +270,46 @@ subroutine get_char_map(string, map)
 
     end do
 
+    if ((ball_direct_char /= "")) then
+        !if (allocated(map)) deallocate(map)
+        !allocate(map(numUniqueChars)) 
+        !map(1:numUniqueChars) = temp_char_map(1:numUniqueChars)
+        temp_char_map(1:numUniqueChars) = sort_chars(temp_char_map(1:numUniqueChars))
+    !     if (allocated(indexs)) deallocate(indexs)
+    !     allocate(indexs(numUniqueChars))
+
+    !     !Convert string to ascii value
+    !     do i=1,numUniqueChars
+
+    !         indexs(i) = iachar(temp_char_map(i))
+
+    !     end do
+
+    !     !Perform bubble sort on ascii values
+    !     do i=1,numUniqueChars
+    !         do j=1,numUniqueChars-1
+
+    !             if (indexs(j) .gt. indexs(j+1)) then
+    !                 tmp = indexs(j)
+    !                 indexs(j) = indexs(j+1)
+    !                 indexs(j+1) = tmp
+    !             end if
+
+    !         end do
+    !     end do
+
+
+    !     !Convert ascii values to characters to return string
+    !     do i=1,numUniqueChars
+
+    !         temp_char_map(i) = achar(indexs(i))
+
+    !     end do
+
+    !     deallocate(indexs)
+    end if
+
+
     if (allocated(map)) deallocate(map)
     allocate(map(numUniqueChars)) 
     map(1:numUniqueChars) = temp_char_map(1:numUniqueChars)
@@ -223,7 +327,7 @@ end subroutine
 ! Written by Luke Mortimer October 2019                                   !
 !=========================================================================!
 subroutine process_directives(string, init_direct, pos_direct,ball_direct)
-
+    use,intrinsic :: ieee_exceptions
     use constants
     use parameters
 
@@ -240,11 +344,18 @@ subroutine process_directives(string, init_direct, pos_direct,ball_direct)
     ! The stored character map (from chars to node index)
     character, dimension(:), allocatable :: map
 
+    ! Temporary character array
+    character, dimension(:), allocatable :: temp_char_array
+
     ! Keep track of where the brackets start
     integer :: bracket_start 
 
     ! Temp variable storing where the arrow (->) is in the substring
     integer :: pipe_index
+
+    ! Temp variable storing where the comma is in the substring
+    integer :: comma_index
+
 
     !Temp variable storing uniform coupled chain length
     integer :: ball_len
@@ -274,12 +385,27 @@ subroutine process_directives(string, init_direct, pos_direct,ball_direct)
     !Ignore the ballistic directive 
     ! At present this only works for a single uniform regime with non uniform endpoints
     ball_len = 0
+    !Find indexes of start and end of ballistic directive in custom string
     i = index(string, "...")
     j = index(string, "...", back=.True.)+2
+
+    !If the ballistic directive is present then remove and copy the
+    ! ballistic directive and find the subsequent alphabetical character
     if (i > 0) then
         if(present(ball_direct)) then
             ball_direct = string(i:j)
-            ball_direct_char = string(j+1:j+1)
+            substring = ""
+            do k=1,len_trim(string(j+1:))
+                if (scan(string(j+k:j+k), "0123456789-i+.()[]>") > 0) cycle
+                substring = trim(substring) // trim(string(j+k:j+k))
+            end do
+            allocate(temp_char_array(len_trim(substring)))
+            do k=1,len_trim(substring)
+                temp_char_array(k) = substring(k:k)
+            end do
+            temp_char_array = sort_chars(temp_char_array)
+            ball_direct_char = temp_char_array(1)
+            deallocate(temp_char_array)
             string = trim(string(:i-1)) // trim(string(j+1:))
         end if
     end if
@@ -383,8 +509,28 @@ subroutine process_directives(string, init_direct, pos_direct,ball_direct)
     ! Set N depending on the number of unique chars
     N = size(map, 1)
     if (ball_direct /= "") then
-        ball_len = chars_to_int(trim(ball_direct(4:len_trim(ball_direct)-3)))
+        i = index(ball_direct, "=")
+        !print*, "Getting size of chain"
+        ball_len = chars_to_int(trim(ball_direct(4:i-1)))
         N = N + ball_len
+
+       !Find the number of j_range coupling values
+        
+        j = 0
+        do k=1,len(ball_direct)
+            if (ball_direct(k:k) == ',') then
+                j = j+1
+            end if
+        enddo
+
+        allocate(n_range_couplings(j))
+
+        !Add the couplings to a coupling storage
+        do k=1,j
+            comma_index = index(ball_direct(i+1:),',')+i
+            n_range_couplings(k) = chars_to_int(trim(ball_direct(i+1:comma_index-1)))
+            i = comma_index
+        enddo
     end if
 
     ! Get the number of initial and target exicitations
