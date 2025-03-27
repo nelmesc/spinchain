@@ -31,15 +31,18 @@ couplings = [sys.argv[i] for i in range(3,len(sys.argv))]
 #Define coupling array
 couplings = np.array(couplings,dtype=float)
 couplings = np.reshape(couplings,(-1,N))
-
 if (custom):
     #USING JS2D
     coupling_range = np.max(np.nonzero(couplings[0]))
 
     #Currently only works for 1st NN
     #But no clear way to show coupling config for second nearest neighbour anyway
-
+    
+    #---------------------------#
+    #This needs to be made so each row decreases in size for smaller number of couplings for NN terms
     coupling_arr = np.zeros((coupling_range,N-1))
+    #---------------------------#
+
     #Assuming symmetry in coupling matrix
     for j in range(1,coupling_range+1):
         for i in range(N-j):
@@ -76,5 +79,31 @@ plt.legend()
 
 #SAVE AS PNG PICTURE
 plt.savefig('couplings.pdf',transparent=False)
+
+plt.cla()
+#PLOT AS FUNCTION OF COUPLING
+
+for i in range(coupling_range):
+    if i == 0:
+        ax1.set_ylabel("Normalised energy",fontsize=25)
+        ax1.set_xlabel('ith 1NN coupling',fontsize=25)
+        plt.plot(sites[:-1]+0.5,coupling_arr[0],color='black',label='1st NN')
+        plt.tight_layout()
+        plt.legend()
+        plt.savefig('1NNcouplings.pdf',transparent=False)
+        plt.cla()
+    elif i == 1:
+        ax1.set_ylabel("Normalised energy",fontsize=25)
+        ax1.set_xlabel('ith 2NN coupling',fontsize=25)
+        plt.plot(sites[:-2]+0.5,coupling_arr[1][:-1],color='black',label='2nd NN')
+        plt.tight_layout()
+        plt.legend()
+        plt.savefig('2NNcouplings.pdf',transparent=False)
+        plt.cla()
+    elif i == 2:
+        plt.plot(sites[:-3]+0.5,coupling_arr[2][:-2],color='blue',label='3rd NN')
+
+    else:
+        plt.plot(sites[:-i]+(0.5),coupling_arr[i][:-i],label=str(i)+'th NN')
 
 
