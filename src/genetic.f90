@@ -219,7 +219,6 @@ subroutine solve_genetic()
                 ! If told to do a single calc, do a dynamics anyway for the sake of graphs
                 single = .false.
                 call solve(1)
-
                 ! Stop the parallelisation
                 call MPI_FINALIZE(mpi_error)
 
@@ -431,7 +430,6 @@ subroutine solve_genetic()
         mutate_amount = int(mutate_amount_real)
 
     end do
-
     ! Evaluation the final generation
     do j = array_start, array_end
         fitnesses(j) = genetic_fitness(population(j), best_fid, best_time, best_qual, numModes) 
@@ -515,7 +513,6 @@ subroutine solve_genetic()
         call solve(1)
 
     end if
-
     ! Stop the parallelisation
     call MPI_FINALIZE(mpi_error)
 
@@ -577,9 +574,9 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
     logical :: wasSingle
 
     ! Set the start and end indices
-    startIndex = int((min_time / totalTime) * steps) + 1
-    endIndex = int((max_time / totalTime) * steps)
-
+    startIndex = int(((min_time-startTime) / (totalTime-startTime)) * steps) + 1
+    endIndex = int(((max_time-startTime) / (totalTime-startTime)) * steps)    
+    
     ! Set the current network to this new string
     custom_string = string
 
@@ -594,15 +591,12 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
         wasSingle = single
         single = .false.
     end if
-
     ! Repeat for each mode of operation
     do j = 1, numModes
 
         ! Solve the system, returning the coefficients for each step
         call solve(j, c_vs_t)
-
         if (.not. single) then
-
             ! Combine the target vector coefficients to get the quality factor 
             searchArray = 0.0_dbl
             do l = 1, steps
@@ -633,7 +627,7 @@ function genetic_fitness(string, fid, time, qual, modes, dynams)
             maxIndex = startIndex-1+maxloc(searchArray(startIndex:endIndex), 1)
             fidelity = searchArray(maxIndex)
             transferTime = (real(maxIndex, dbl) / real(steps, dbl)) * (totalTime-startTime) + startTime
-
+            
             ! Get the quality at this point
             quality = 1.0_dbl
             do i = 1, numF

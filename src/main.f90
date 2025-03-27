@@ -17,6 +17,9 @@ contains
 
 subroutine solve(modeNum, c_vs_t)
 
+!Testing only
+use,intrinsic :: ieee_exceptions
+
 !!load subroutines
 use dependencies
 !!load constants
@@ -214,33 +217,37 @@ if (output .and. .not. use_genetic) then
     endif
     write(40,207) adjustl(trim(tmp))
 
-    208 FORMAT ("TOTAL TIME = ",A)
-    write(tmp,'(f8.2)') totaltime
+    208 FORMAT ("START TIME = ",A)
+    write(tmp,'(f8.2)') (startTime)
     write(40,208) adjustl(trim(tmp))
 
-    209 FORMAT ("TIME STEP = ",A)
-    write(tmp,'(f8.4)') totaltime/real(steps)
+    209 FORMAT ("FINAL TIME = ",A)
+    write(tmp,'(f8.2)') (totalTime)
     write(40,209) adjustl(trim(tmp))
+
+    210 FORMAT ("TIME STEP = ",A)
+    write(tmp,'(f8.4)') (totaltime-startTime)/real(steps)
+    write(40,210) adjustl(trim(tmp))
 
 
     if (eof) then
-        210 FORMAT ("EOF = Qubit ",A,'- Qubit ',A)
+        211 FORMAT ("EOF = Qubit ",A,'- Qubit ',A)
         write(tmp,'(i3.1)') Q1
         write(tmp2,'(i3.1)') Q2
-        write(40,210) adjustl(trim(tmp)), adjustl(trim(tmp2))
+        write(40,211) adjustl(trim(tmp)), adjustl(trim(tmp2))
     else
-        211 FORMAT ("EOF = ",A)
+        212 FORMAT ("EOF = ",A)
         tmp = 'NO'
-        write(40,211) adjustl(trim(tmp))
+        write(40,212) adjustl(trim(tmp))
     endif
 
-    212 FORMAT ("METHOD = ",A)
+    213 FORMAT ("METHOD = ",A)
     if (integration) then
         tmp = 'INT'
     else if (diagonalisation) then
         tmp = 'DIAG'
     end if
-    write(40,212) adjustl(trim(tmp))
+    write(40,213) adjustl(trim(tmp))
 
 endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -474,7 +481,6 @@ endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! BUILD HAMILTONIAN IN THE SPIN BASIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 allocate(hami(vectorstotal,vectorstotal))
 
 hami=0.0_dbl
@@ -567,7 +573,6 @@ if (files .and. .not. use_genetic) then
     enddo
     close(89)
 endif
-
 
 !***********************************************************************************************************************
 ! LAPACK SUBROUTINE ©                                                                                                 !*
@@ -682,7 +687,6 @@ if (output .and. .not. use_genetic) then
 end if
 
 end if
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! INTEGRATION METHOD !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -863,6 +867,7 @@ if (diagonalisation) then
     if (allocated(work))    deallocate(work)
     if (allocated(iwork))   deallocate(iwork)
 endif
+
 end subroutine
 
 !*********************TO BE REPROGRAMED**********************!
