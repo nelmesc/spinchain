@@ -176,18 +176,25 @@ end function
 !-------------------------------------------------------------------------!
 ! Written by Fabien Faria March 2025                                      !
 !=========================================================================!
-
-function sort_chars(chars)
+!This should be a subroutine which may fix all problems
+subroutine sort_chars(chars, sorted_char_map)
 
     character, dimension(:), intent(in) :: chars
-    character, dimension(size(chars)):: sort_chars
+    character, dimension(:), allocatable, intent(out) :: sorted_char_map
     integer, dimension(:), allocatable :: ascii_vals
     integer :: numChars,tmp
     integer :: i,j
+    logical :: sorted
 
     numChars = size(chars)
+    !Allocate array to store ascii numbers
     if (allocated(ascii_vals)) deallocate(ascii_vals)
     allocate(ascii_vals(numChars))
+
+    !Allocate array to store sorted list
+    if (allocated(sorted_char_map)) deallocate(sorted_char_map)
+    allocate(sorted_char_map(numChars))
+
     !Convert string to ascii value
     do i=1,numChars
 
@@ -196,31 +203,31 @@ function sort_chars(chars)
     end do
 
     !Perform bubble sort on ascii values
-    do i=1,numChars
-        do j=1,numChars-1
+    do i=numChars-1,1,-1
+    sorted = .False.
+        do j=1,i
 
             if (ascii_vals(j) .gt. ascii_vals(j+1)) then
                 tmp = ascii_vals(j)
                 ascii_vals(j) = ascii_vals(j+1)
                 ascii_vals(j+1) = tmp
+                sorted = .True.
             end if
-
         end do
+        if (.not. sorted) exit
     end do
 
 
     !Convert ascii values to characters to return string
     do i=1,numChars
 
-        sort_chars(i) = achar(ascii_vals(i))
+        sorted_char_map(i) = achar(ascii_vals(i))
         !print*,sort_chars(i)
 
     end do
-
     deallocate(ascii_vals)
 
-end function
-
+end subroutine
 
 
 !=========================================================================!
@@ -240,9 +247,9 @@ subroutine get_char_map(string, map)
 
     character(*), intent(in) :: string
     character, dimension(:), allocatable, intent(out) :: map
+    character, dimension(:), allocatable :: sorted_char_map
     character, dimension(max_string_size):: temp_char_map
     integer :: numUniqueChars, tmp
-    integer, dimension(:), allocatable :: indexs
     integer :: i, j
     logical :: found
 
@@ -271,48 +278,16 @@ subroutine get_char_map(string, map)
     end do
 
     if ((ball_direct_char /= "")) then
-        !if (allocated(map)) deallocate(map)
-        !allocate(map(numUniqueChars)) 
-        !map(1:numUniqueChars) = temp_char_map(1:numUniqueChars)
-        temp_char_map(1:numUniqueChars) = sort_chars(temp_char_map(1:numUniqueChars))
-    !     if (allocated(indexs)) deallocate(indexs)
-    !     allocate(indexs(numUniqueChars))
+        call sort_chars(temp_char_map(1:numUniqueChars),sorted_char_map)
+        if (allocated(map)) deallocate(map)
+        allocate(map(numUniqueChars)) 
+        map(1:numUniqueChars) = sorted_char_map(1:numUniqueChars)
+    else
 
-    !     !Convert string to ascii value
-    !     do i=1,numUniqueChars
-
-    !         indexs(i) = iachar(temp_char_map(i))
-
-    !     end do
-
-    !     !Perform bubble sort on ascii values
-    !     do i=1,numUniqueChars
-    !         do j=1,numUniqueChars-1
-
-    !             if (indexs(j) .gt. indexs(j+1)) then
-    !                 tmp = indexs(j)
-    !                 indexs(j) = indexs(j+1)
-    !                 indexs(j+1) = tmp
-    !             end if
-
-    !         end do
-    !     end do
-
-
-    !     !Convert ascii values to characters to return string
-    !     do i=1,numUniqueChars
-
-    !         temp_char_map(i) = achar(indexs(i))
-
-    !     end do
-
-    !     deallocate(indexs)
+        if (allocated(map)) deallocate(map)
+        allocate(map(numUniqueChars)) 
+        map(1:numUniqueChars) = temp_char_map(1:numUniqueChars)
     end if
-
-
-    if (allocated(map)) deallocate(map)
-    allocate(map(numUniqueChars)) 
-    map(1:numUniqueChars) = temp_char_map(1:numUniqueChars)
 
 end subroutine
 
@@ -346,7 +321,7 @@ subroutine process_directives(string, init_direct, pos_direct,ball_direct)
 
     ! Temporary character array
     character, dimension(:), allocatable :: temp_char_array
-
+    character, dimension(:), allocatable :: add_temp_char_array
     ! Keep track of where the brackets start
     integer :: bracket_start 
 
@@ -399,13 +374,13 @@ subroutine process_directives(string, init_direct, pos_direct,ball_direct)
                 if (scan(string(j+k:j+k), "0123456789-i+.()[]>") > 0) cycle
                 substring = trim(substring) // trim(string(j+k:j+k))
             end do
+            if (allocated(temp_char_array)) deallocate(temp_char_array)
             allocate(temp_char_array(len_trim(substring)))
             do k=1,len_trim(substring)
                 temp_char_array(k) = substring(k:k)
             end do
-            temp_char_array = sort_chars(temp_char_array)
-            ball_direct_char = temp_char_array(1)
-            deallocate(temp_char_array)
+            call sort_chars(temp_char_array,add_temp_char_array)
+            ball_direct_char = add_temp_char_array(1)
             string = trim(string(:i-1)) // trim(string(j+1:))
         end if
     end if
@@ -505,12 +480,10 @@ subroutine process_directives(string, init_direct, pos_direct,ball_direct)
 
     ! Get the character map 
     call get_char_map(string, map)
-
     ! Set N depending on the number of unique chars
     N = size(map, 1)
     if (ball_direct /= "") then
         i = index(ball_direct, "=")
-        !print*, "Getting size of chain"
         ball_len = chars_to_int(trim(ball_direct(4:i-1)))
         N = N + ball_len
 
