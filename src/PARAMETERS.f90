@@ -2,7 +2,6 @@
 MODULE parameters
 
 use constants
-
 !**********************
 !!INITIAL DEFINITIONS *
 !**********************
@@ -15,6 +14,7 @@ integer                               :: coupling_digits   = 4
 character(max_string_size)            :: custom_string     = &
   & "<A|C>AB500BC500#00"
 character(1)                          :: ball_direct_char = ""
+real(kind=dbl), dimension(:), allocatable :: n_range_couplings
 
 ! If the program should give a time estimate and then stop
 logical :: stop_after_time = .false.
@@ -109,14 +109,14 @@ logical                   :: allow_negative           = .false.
 
 ! Max fidelity search range
 real(kind=dbl)            :: min_time                 = 0.0_dbl  
-real(kind=dbl)            :: max_time                 = 200.0_dbl  
+real(kind=dbl)            :: max_time                 = 50.0_dbl  
 
 ! Should time be minimised along with the fidelity?
-logical                   :: minimise_time            = .true.
+logical                   :: minimise_time            = .false.
 
 ! Fitness function scaling factors, don't touch these
 real(kind=dbl), parameter :: fidelity_scale           = 10.0_dbl    
-real(kind=dbl)            :: time_scale               = -0.001_dbl  
+real(kind=dbl)            :: time_scale               = 0.00_dbl !-0.001_dbl  
 
 !**************************************
 !!Basic characteristics of the system *
@@ -147,7 +147,7 @@ real(kind=dbl), parameter :: J_max = 1.0    !Maximum coupling in the middle
 real(kind=dbl), parameter :: J_strong = 1.0 !Strong versus weak coupling for
 real(kind=dbl), parameter :: J_weak = 0.1   !SSH-like schemes.
 
-real(kind=dbl) :: eeScale = 0.1410          !Scaling factor for excite-excite interaction
+real(kind=dbl) :: eeScale = 0 !0.1410       !Scaling factor for excite-excite interaction
 
 !************************************
 !!Disorder and tolerance parameters *
@@ -165,9 +165,9 @@ real(kind=dbl), parameter :: error=0.0001_dbl !allowed error for integration met
 !!Dynamics parameters *
 !**********************
 
-integer, parameter :: steps = 1000
+integer, parameter :: steps = 5000
 real(kind=dbl) :: startTime = 0
-real(kind=dbl) :: totalTime = 200 !total time for the dynamics
+real(kind=dbl) :: totalTime = 50 !total time for the dynamics
 real(kind=dbl) :: t_A = 4  !time for single point calculation (set single option)
 
 
