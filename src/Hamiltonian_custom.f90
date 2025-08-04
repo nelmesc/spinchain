@@ -56,13 +56,15 @@ subroutine build_hamiltonian_custom(N, num_basis, Js2D, basis_vecs, H, eeScale)
                 end do
 
                 ! Consider the interaction between adjacent excitations TODO 1
-                do k = 1, N
-                    do l = 1, N
-                        if (basis_vecs(i, k) == 1 .and. basis_vecs(i, l) == 1) then
-                            H(j, i) = H(j, i) + eeScale*Js2D(k, l)
-                        end if
-                    end do
-                end do
+
+                !This should be commented out as erroneously affects single excitation | Fabien Faria 10/02/2025
+                !do k = 1, N
+                !    do l = 1, N
+                !        if (basis_vecs(i, k) == 1 .and. basis_vecs(i, l) == 1) then
+                !            H(j, i) = H(j, i) + eeScale*Js2D(k, l)
+                !        end if
+                !    end do
+                !end do
 
                 cycle
 
