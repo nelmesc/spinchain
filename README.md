@@ -48,6 +48,14 @@ An example which just uses the original code to evaluate the network, without op
 bin/spinnet "<A|E>AB500BC500CD500DE500#0000"
 ```
 
+An example which adds a central uniformly coupled region of 10 spins with maximum nearest and next-nearest coupling:
+
+```bash
+bin/spinnet "<A|F>AB500BC500...10=9999,9999,...DE500EF500"
+```
+
+
+
 Results are placed in a folder called "output-latest" as well as a backup folder labelled with the date/time of the run. The output includes graphs/data files depending on the run parameters, generally the main file needed is "genetic.out" which contains the fitness and evolution of the run.
 
 ## Interesting Genomes
