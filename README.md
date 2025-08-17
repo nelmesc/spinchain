@@ -42,6 +42,12 @@ An example which uses the genetic algorithm to optimise the couplings using the 
 bin/spinnet -o -a "<A|E>AB500BC500CD500DE500#0000"
 ```
 
+An example which uses the genetic algorithm to optimise ONLY the on-site energies, keeping the coupling the same within the time window:
+
+```bash
+bin/spinnet -o --energy "<A|E>AB500BC500CD500DE500#0000"
+```
+
 An example which just uses the original code to evaluate the network, without optimising:
 
 ```bash
@@ -53,8 +59,16 @@ An example which adds a central uniformly coupled region of 10 spins with maximu
 ```bash
 bin/spinnet "<A|F>AB500BC500...10=9999,9999,...DE500EF500"
 ```
+An example which demonstrates near-perfect state transfer for a 20-site NNN chain with J1 = 1 and J2 = 0.5:
+```bash
+bin/spinnet "<A|M>AA8889AB5347BC9999AC2999BD1763CD9999CE3712DE9989DF4097...20=9999,5000,...GJ4097HJ9989HK3712JK9999JL1763KM2999KL9999LM5347MM8889"
+```
+The structure for the NNN chain is similar to the NN optimisation, except the couplings at the edges are only optimised, and the genomic structure is as follows:
 
-
+```bash
+bin/spinnet "<A|F>AA9999AB9999BC9999...N=J1,J2,...DE9999EF9999FF9999"
+```
+where the repeated AA or FF terms represent the on-site energies (to be optimised or removed otherwise). 
 
 Results are placed in a folder called "output-latest" as well as a backup folder labelled with the date/time of the run. The output includes graphs/data files depending on the run parameters, generally the main file needed is "genetic.out" which contains the fitness and evolution of the run.
 
