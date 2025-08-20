@@ -95,7 +95,7 @@ logical,        parameter :: use_alternating          = .true.
 logical :: use_bogo = .false.
 
 !Should the genome be mirror symmetric? Only for linear chains
-logical                   :: mirror_symmetric         = .true.
+logical                   :: mirror_symmetric         = .false.
 
 ! Should the fitness function be linear with fidelity?
 logical                   :: linear_fitness           = .false.
