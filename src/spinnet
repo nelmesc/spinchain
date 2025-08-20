@@ -47,6 +47,7 @@ function outputHelp {
 	echo "  -X --fixed              generate scaling graph of time vs matrix size"
 	echo "  -d --delete             delete all output folders in this directory"
 	echo "  -c --convert     [int]  convert the string to a certain num of digits"
+	echo "     --mirror             enforces mirror symmetry throughout mutation"
 	echo " "
 	echo "General Flags:"
 	echo "  -e --eescale   [float]  set the scale of the excite-excite term (def 0.1)"
