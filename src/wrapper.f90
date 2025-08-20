@@ -134,7 +134,7 @@ program wrapper
 
             mutate_amount_initial = chars_to_int(args(i+1))
 
-        else if (args(i) == "-e" .or. args(i) == "--energy") then
+        else if (args(i) == "-R" .or. args(i) == "--energy") then
 
             energies_only = .true.
 
