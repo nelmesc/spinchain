@@ -94,6 +94,14 @@ program wrapper
             stop_after_time_full = .true.
             use_genetic = .true.
 
+        else if (args(i) == "-r" .or. args(i) == "--mirror") then
+          
+          mirror_symmetric = .true.
+
+        else if (args(i) == "--no-mirror") then
+          
+          mirror_symmetric = .false.
+
         else if (args(i) == "-t" .or. args(i) == "--time") then
 
             stop_after_time = .true.
